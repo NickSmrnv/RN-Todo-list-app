@@ -1,0 +1,93 @@
+import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import {
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    ViewStyle,
+} from "react-native";
+
+interface I_Custom_Button {
+    label?: string;
+    icon?: React.ComponentProps<typeof Ionicons>["name"];
+    iconSize?: number;
+    iconColor?: string;
+    size?: "default" | "small" | "large";
+    variant?: "primary" | "secondary" | "delete";
+    disabled?: boolean;
+    onPress?: () => void;
+    style?: ViewStyle;
+}
+
+export const CustomButton: React.FC<I_Custom_Button> = ({
+    label,
+    icon,
+    iconSize = 14,
+    iconColor = COLORS.black,
+    size,
+    variant = "primary",
+    disabled = false,
+    onPress,
+    style,
+}) => {
+    return (
+        <TouchableOpacity
+            style={[
+                styles.button,
+                disabled && styles.disabled,
+                // Sizes
+                size === "small" ? styles.small : null,
+                size === "large" ? styles.large : null,
+                // Variants
+                variant === "secondary" ? styles.secondary : null,
+                variant === "delete" ? styles.delete : null,
+                style,
+            ]}
+            disabled={disabled}
+            onPress={onPress}
+        >
+            {label && <Text style={styles.text}>{label}</Text>}
+            {icon && <Ionicons name={icon} size={iconSize} color={iconColor} />}
+        </TouchableOpacity>
+    );
+};
+
+const styles = StyleSheet.create({
+    button: {
+        backgroundColor: COLORS.blue,
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "row",
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 10,
+    },
+
+    text: {
+        color: COLORS.white,
+    },
+    disabled: {
+        opacity: 0.5,
+    },
+    // variants
+    secondary: {
+        backgroundColor: COLORS.green,
+    },
+    delete: {
+        backgroundColor: COLORS.pink,
+    },
+    
+    // sizes
+    small: {
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 8,
+    },
+    large: {
+        fontSize: 30,
+        paddingHorizontal: 24,
+        paddingVertical: 16,
+        borderRadius: 12,
+    },
+});
