@@ -17,6 +17,7 @@ export default function Index() {
         onDeleteTodo,
         onCheckTodo,
         onUpdateTodoTitle,
+        onReorderTodos,
         onRefresh,
       } = useTodo();
 
@@ -44,9 +45,14 @@ export default function Index() {
                     completedTodos={completedTodos.length}
                     onAddTodo={onAddTodo}
                 />
-
                 <View style={style.content}>
-                    <TodoList todos={todos} onCheckTodo={onCheckTodo} onDeleteTodo={onDeleteTodo} onUpdateTodo={onUpdateTodoTitle} />
+                    <TodoList 
+                        todos={todos} 
+                        onCheckTodo={onCheckTodo} 
+                        onDeleteTodo={onDeleteTodo} 
+                        onUpdateTodo={onUpdateTodoTitle}
+                        onReorderTodos={onReorderTodos}
+                    />
                 </View>
             </ScrollView>
         </View>
@@ -69,7 +75,6 @@ const style = StyleSheet.create({
     content: {
         width: "100%",
         flex: 1,
-        paddingHorizontal: 20,
         paddingVertical: 10,
         backgroundColor: COLORS.blue,
     },

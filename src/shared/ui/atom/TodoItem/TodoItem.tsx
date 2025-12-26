@@ -11,9 +11,20 @@ interface I_Todo_Item extends I_Todo {
     onCheck: (id: I_Todo["id"]) => void;
     onDelete: (id: I_Todo["id"]) => void;
     onUpdate: (id: I_Todo["id"], title: I_Todo["title"]) => void;
+    onLongPress?: () => void;
+    isDragging?: boolean;
 }
 
-export const TodoItem: React.FC<I_Todo_Item> = ({ id, title, isCompleted, onCheck, onDelete, onUpdate }) => {
+export const TodoItem: React.FC<I_Todo_Item> = ({ 
+    id, 
+    title, 
+    isCompleted, 
+    onCheck, 
+    onDelete, 
+    onUpdate,
+    onLongPress,
+    isDragging = false
+}) => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -28,8 +39,12 @@ export const TodoItem: React.FC<I_Todo_Item> = ({ id, title, isCompleted, onChec
     }
 
     return (
-        <View style={styles.container}>
-            <Pressable style={styles.checkTitleContainer} onPress={onPressCheck}>
+        <View style={[styles.container, isDragging && styles.draggingContainer]}>
+            <Pressable 
+                style={styles.checkTitleContainer} 
+                onPress={onPressCheck}
+                onLongPress={onLongPress}
+            >
                 <CustomCheckbox checked={isCompleted} onCheck={onPressCheck}/>
                 <Text
                     style={{
@@ -76,5 +91,9 @@ const styles = StyleSheet.create({
     controlContainer: {
         flexDirection: "row",
         gap: 5,
+    },
+    draggingContainer: {
+        opacity: 0.5,
+        transform: [{ scale: 1.05 }],
     },
 });

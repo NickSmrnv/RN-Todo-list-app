@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from "@/store";
-import { addTodo, refreshTodos, removeTodo, selectTodos, toggleTodo, updateTodo } from "@/store/slices/todoSlice";
+import { addTodo, refreshTodos, removeTodo, reorderTodos, selectTodos, toggleTodo, updateTodo } from "@/store/slices/todoSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { I_Todo } from "../../model/types/todo";
 
@@ -21,6 +21,10 @@ const useTodo = () => {
 
     const onUpdateTodoTitle = (id: I_Todo["id"], title: I_Todo["title"]) => {
         dispatch(updateTodo({id, title}))
+    };
+
+    const onReorderTodos = (newOrder: I_Todo[]) => {
+        dispatch(reorderTodos(newOrder));
     };
 
     const onRefresh = async () => {
@@ -47,6 +51,7 @@ const useTodo = () => {
     onDeleteTodo,
     onCheckTodo,
     onUpdateTodoTitle,
+    onReorderTodos,
     onRefresh,
     todos,
     completedTodos,

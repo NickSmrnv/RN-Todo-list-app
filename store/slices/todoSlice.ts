@@ -71,10 +71,17 @@ export const todoSlice = createSlice({
         ) => {
             state.todos = action.payload;
         },
+
+        reorderTodos: (
+            state: I_Todo_State,
+            action: PayloadAction<I_Todo[]>
+        ) => {
+            state.todos = action.payload;
+        },
     }
 })
 
-export const { addTodo, removeTodo, toggleTodo, updateTodo, refreshTodos } = todoSlice.actions;
+export const { addTodo, removeTodo, toggleTodo, updateTodo, refreshTodos, reorderTodos } = todoSlice.actions;
 
 export const selectTodos = (state: { todo: I_Todo_State }): I_Todo_State["todos"] => state.todo.todos
 
