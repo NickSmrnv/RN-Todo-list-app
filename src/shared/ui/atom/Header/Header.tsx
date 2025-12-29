@@ -1,15 +1,14 @@
 import { getFullFormattedDate } from "@/src/shared/lib/obj/date";
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { I_Todo_Creator, TodoCreator } from "../../molecules/TodoCreator/TodoCreator";
 import { CustomText } from "../_Custom/CustomText/CustomText";
 
-interface I_Header extends I_Todo_Creator{
+interface I_Header {
     totalTodos: number;
     completedTodos: number;
 }
 
-export const Header: React.FC<I_Header> = ({ totalTodos, completedTodos, onAddTodo }) => {
+export const Header: React.FC<I_Header> = ({ totalTodos, completedTodos }) => {
     const formattedDate = getFullFormattedDate(new Date());
     
     return (
@@ -24,8 +23,6 @@ export const Header: React.FC<I_Header> = ({ totalTodos, completedTodos, onAddTo
             <CustomText variant={"subtitle"}>
                 Выполненно: {completedTodos} / {totalTodos}
             </CustomText>
-
-            <TodoCreator onAddTodo={onAddTodo}/>
         </View>
     );
 };

@@ -1,6 +1,8 @@
+import { AddTodoModal } from "@/src/features/modals/AddTodoModal/AddTodoModal";
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
 import useTodo from "@/src/shared/lib/hooks/useTodo";
 import { Header } from "@/src/shared/ui/atom/Header/Header";
+import { CustomButton } from "@/src/shared/ui/atom/_Custom/CustomButton/CustomButton";
 import { TodoList } from "@/src/shared/ui/molecules/TodoList/TodoList";
 import { useState } from "react";
 import { RefreshControl, ScrollView, StatusBar, StyleSheet, View } from "react-native";
@@ -9,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function Index() {
     const insets = useSafeAreaInsets();
     const [refreshing, setRefreshing] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     const {
         todos,
@@ -27,6 +30,10 @@ export default function Index() {
         setRefreshing(false);
     };
 
+    const handleAddTodo = (title: string) => {
+        onAddTodo(title);
+    };
+
     return (
         <View style={{ paddingTop: insets.top, ...style.container }}>
             <StatusBar barStyle={"dark-content"} />
@@ -43,7 +50,6 @@ export default function Index() {
                 <Header
                     totalTodos={todos.length}
                     completedTodos={completedTodos.length}
-                    onAddTodo={onAddTodo}
                 />
                 <View style={style.content}>
                     <TodoList 
@@ -55,6 +61,20 @@ export default function Index() {
                     />
                 </View>
             </ScrollView>
+            <View style={[style.fabContainer, { bottom: insets.bottom + 20 }]}>
+                <CustomButton
+                    icon="add"
+                    iconSize={30}
+                    iconColor={COLORS.black}
+                    onPress={() => setIsAddModalOpen(true)}
+                    style={style.fabButton}
+                />
+            </View>
+            <AddTodoModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onAdd={handleAddTodo}
+            />
         </View>
     );
 }
@@ -77,5 +97,27 @@ const style = StyleSheet.create({
         flex: 1,
         paddingVertical: 10,
         backgroundColor: COLORS.blue,
+    },
+    fabContainer: {
+        position: "absolute",
+        right: 20,
+    },
+    fabButton: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        paddingHorizontal: 0,
+        paddingVertical: 0,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: COLORS.white,
+        elevation: 8,
+        shadowColor: COLORS.black,
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 4.65,
     },
 });
