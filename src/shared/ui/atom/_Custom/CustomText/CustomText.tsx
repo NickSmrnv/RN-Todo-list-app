@@ -20,11 +20,15 @@ const styles = StyleSheet.create({
         fontWeight: "400",
     },
     title: {
-        fontSize: 20,
+        fontSize: 30,
         fontWeight: "600",
     },
     subtitle: {
         fontSize: 14,
+        fontWeight: "400",
+    },
+    small: {
+        fontSize: 12,
         fontWeight: "400",
     },
 });

@@ -2,13 +2,20 @@ import { useAppDispatch, useAppSelector } from "@/store";
 import { addTodo, refreshTodos, removeTodo, reorderTodos, selectTodos, toggleTodo, updateTodo } from "@/store/slices/todoSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { I_Todo } from "../../model/types/todo";
+import { getTodayDate, isSameDate } from "../obj/date";
 
 const useTodo = () => {
     const todos = useAppSelector(selectTodos);
     const dispatch = useAppDispatch()
 
-    const onAddTodo = (title: I_Todo["title"]) => {
-        dispatch(addTodo({ id: Number(new Date()), title, isCompleted: false }));
+    const onAddTodo = (title: I_Todo["title"], date?: Date) => {
+        const todoDate = date || getTodayDate();
+        dispatch(addTodo({ 
+            id: Number(new Date()), 
+            title, 
+            isCompleted: false,
+            date: todoDate.toISOString()
+        }));
     };
 
     const onDeleteTodo = (id: I_Todo["id"]) => {
@@ -46,6 +53,14 @@ const useTodo = () => {
 
   const completedTodos = todos.filter((todo) => todo.isCompleted);
 
+  const getTodosByDate = (date: Date) => {
+    return todos.filter((todo) => {
+      if (!todo.date) return false;
+      const todoDate = typeof todo.date === 'string' ? new Date(todo.date) : todo.date;
+      return isSameDate(todoDate, date);
+    });
+  };
+
   return {
     onAddTodo,
     onDeleteTodo,
@@ -55,6 +70,7 @@ const useTodo = () => {
     onRefresh,
     todos,
     completedTodos,
+    getTodosByDate,
   };
 };
 

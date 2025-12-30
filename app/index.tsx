@@ -1,6 +1,8 @@
 import { AddTodoModal } from "@/src/features/modals/AddTodoModal/AddTodoModal";
+import { DateSlider } from "@/src/features/widgets/DateSlider/DateSlider";
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
 import useTodo from "@/src/shared/lib/hooks/useTodo";
+import { getTodayDate } from "@/src/shared/lib/obj/date";
 import { Header } from "@/src/shared/ui/atom/Header/Header";
 import { CustomButton } from "@/src/shared/ui/atom/_Custom/CustomButton/CustomButton";
 import { TodoList } from "@/src/shared/ui/molecules/TodoList/TodoList";
@@ -12,6 +14,7 @@ export default function Index() {
     const insets = useSafeAreaInsets();
     const [refreshing, setRefreshing] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<Date>(getTodayDate());
 
     const {
         todos,
@@ -22,7 +25,11 @@ export default function Index() {
         onUpdateTodoTitle,
         onReorderTodos,
         onRefresh,
+        getTodosByDate,
       } = useTodo();
+
+    const filteredTodos = getTodosByDate(selectedDate);
+    const filteredCompletedTodos = filteredTodos.filter((todo) => todo.isCompleted);
 
     const handleRefresh = async () => {
         setRefreshing(true);
@@ -31,7 +38,11 @@ export default function Index() {
     };
 
     const handleAddTodo = (title: string) => {
-        onAddTodo(title);
+        onAddTodo(title, selectedDate);
+    };
+
+    const handleDateChange = (date: Date) => {
+        setSelectedDate(date);
     };
 
     return (
@@ -48,12 +59,16 @@ export default function Index() {
                 }
             >
                 <Header
-                    totalTodos={todos.length}
-                    completedTodos={completedTodos.length}
+                    totalTodos={filteredTodos.length}
+                    completedTodos={filteredCompletedTodos.length}
+                    selectedDate={selectedDate}
                 />
+                <View style={style.dateSliderContainer}>
+                    <DateSlider onDateChange={handleDateChange} />
+                </View>
                 <View style={style.content}>
                     <TodoList 
-                        todos={todos} 
+                        todos={filteredTodos} 
                         onCheckTodo={onCheckTodo} 
                         onDeleteTodo={onDeleteTodo} 
                         onUpdateTodo={onUpdateTodoTitle}
@@ -91,6 +106,10 @@ const style = StyleSheet.create({
     },
     scrollContent: {
         flexGrow: 1,
+    },
+    dateSliderContainer: {
+        width: "100%",
+        paddingBottom: 10,
     },
     content: {
         width: "100%",
