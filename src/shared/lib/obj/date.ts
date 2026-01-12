@@ -59,3 +59,25 @@ export const getDateLabel = (date: Date): string => {
             }).format(date).replace('.', '');
     }
 }
+
+export const getYearDates = (year?: number): Date[] => {
+    const targetYear = year || new Date().getFullYear();
+    const dates: Date[] = [];
+    
+    // Начинаем с 1 января
+    const startDate = new Date(targetYear, 0, 1);
+    startDate.setHours(0, 0, 0, 0);
+    
+    // Заканчиваем 31 декабря
+    const endDate = new Date(targetYear, 11, 31);
+    endDate.setHours(0, 0, 0, 0);
+    
+    // Генерируем все даты от 1 января до 31 декабря
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+        dates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return dates;
+}
