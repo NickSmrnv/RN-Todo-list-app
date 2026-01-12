@@ -3,6 +3,7 @@ import { DateSlider } from "@/src/features/widgets/DateSlider/DateSlider";
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
 import useTodo from "@/src/shared/lib/hooks/useTodo";
 import { getTodayDate } from "@/src/shared/lib/obj/date";
+import { TodoPriority } from "@/src/shared/model/types/todo";
 import { Header } from "@/src/shared/ui/atom/Header/Header";
 import { CustomButton } from "@/src/shared/ui/atom/_Custom/CustomButton/CustomButton";
 import { TodoList } from "@/src/shared/ui/molecules/TodoList/TodoList";
@@ -37,8 +38,8 @@ export default function Index() {
         setRefreshing(false);
     };
 
-    const handleAddTodo = (title: string) => {
-        onAddTodo(title, selectedDate);
+    const handleAddTodo = (title: string, priority: TodoPriority) => {
+        onAddTodo(title, selectedDate, priority);
     };
 
     const handleDateChange = (date: Date) => {

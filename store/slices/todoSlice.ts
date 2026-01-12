@@ -59,10 +59,14 @@ export const todoSlice = createSlice({
 
         updateTodo: (
             state: I_Todo_State,
-            action: PayloadAction<{ id: number; title: string }>
+            action: PayloadAction<{ id: number; title?: string; priority?: I_Todo["priority"] }>
         ) => {
-            const { id, title } = action.payload;
-            state.todos = state.todos.map((todo) => todo.id === id ? { ...todo, title }: todo);
+            const { id, title, priority } = action.payload;
+            state.todos = state.todos.map((todo) => 
+                todo.id === id 
+                    ? { ...todo, ...(title !== undefined && { title }), ...(priority !== undefined && { priority }) }
+                    : todo
+            );
         },
 
         refreshTodos: (

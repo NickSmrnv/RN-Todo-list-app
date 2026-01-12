@@ -1,13 +1,13 @@
 import React from "react";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
-import { I_Todo } from "../../../model/types/todo";
+import { I_Todo, TodoPriority } from "../../../model/types/todo";
 import { TodoItem } from "../../atom/TodoItem/TodoItem";
 
 interface I_Todo_List {
     todos: I_Todo[];
     onCheckTodo: (id: I_Todo["id"]) => void;
     onDeleteTodo: (id: I_Todo["id"]) => void;
-    onUpdateTodo: (id: I_Todo["id"], title: I_Todo["title"]) => void;
+    onUpdateTodo: (id: I_Todo["id"], title: I_Todo["title"], priority?: TodoPriority) => void;
     onReorderTodos: (todos: I_Todo[]) => void;
 }
 
@@ -25,6 +25,7 @@ export const TodoList: React.FC<I_Todo_List> = ({
                     id={item.id}
                     title={item.title}
                     isCompleted={item.isCompleted}
+                    priority={item.priority}
                     onCheck={onCheckTodo}
                     onDelete={onDeleteTodo}
                     onUpdate={onUpdateTodo}

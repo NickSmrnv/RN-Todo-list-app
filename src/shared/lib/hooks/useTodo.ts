@@ -1,20 +1,21 @@
 import { useAppDispatch, useAppSelector } from "@/store";
 import { addTodo, refreshTodos, removeTodo, reorderTodos, selectTodos, toggleTodo, updateTodo } from "@/store/slices/todoSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { I_Todo } from "../../model/types/todo";
+import { I_Todo, TodoPriority } from "../../model/types/todo";
 import { getTodayDate, isSameDate } from "../obj/date";
 
 const useTodo = () => {
     const todos = useAppSelector(selectTodos);
     const dispatch = useAppDispatch()
 
-    const onAddTodo = (title: I_Todo["title"], date?: Date) => {
+    const onAddTodo = (title: I_Todo["title"], date?: Date, priority?: TodoPriority) => {
         const todoDate = date || getTodayDate();
         dispatch(addTodo({ 
             id: Number(new Date()), 
             title, 
             isCompleted: false,
-            date: todoDate.toISOString()
+            date: todoDate.toISOString(),
+            priority: priority || "Средний"
         }));
     };
 
@@ -26,8 +27,12 @@ const useTodo = () => {
         dispatch(toggleTodo(id));
     };
 
-    const onUpdateTodoTitle = (id: I_Todo["id"], title: I_Todo["title"]) => {
-        dispatch(updateTodo({id, title}))
+    const onUpdateTodoTitle = (id: I_Todo["id"], title: I_Todo["title"], priority?: TodoPriority) => {
+        dispatch(updateTodo({id, title, priority}))
+    };
+
+    const onUpdateTodoPriority = (id: I_Todo["id"], priority: TodoPriority) => {
+        dispatch(updateTodo({id, priority}))
     };
 
     const onReorderTodos = (newOrder: I_Todo[]) => {

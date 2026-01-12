@@ -1,20 +1,23 @@
-import { I_Todo } from "@/src/shared/model/types/todo";
+import { I_Todo, TodoPriority } from "@/src/shared/model/types/todo";
 import { CustomButton } from "@/src/shared/ui/atom/_Custom/CustomButton/CustomButton";
 import { CustomModal } from "@/src/shared/ui/atom/_Custom/CustomModal/CustomModal";
 import { CustomText } from "@/src/shared/ui/atom/_Custom/CustomText/CustomText";
 import { CustomTextInput } from "@/src/shared/ui/atom/_Custom/CustomTextInput/CustomTextInput";
+import { PrioritySelector } from "@/src/shared/ui/atom/PrioritySelector/PrioritySelector";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 interface I_Edit_Todo_Modal {
     title: I_Todo["title"],
+    priority?: TodoPriority,
     onClose: () => void;
-    onUpdate: (title: I_Todo["title"]) => void;
+    onUpdate: (title: I_Todo["title"], priority?: TodoPriority) => void;
     isOpen: boolean;
 }
 
-export const EditTodoModal: React.FC<I_Edit_Todo_Modal> = ({ isOpen, title, onClose, onUpdate }) => {
+export const EditTodoModal: React.FC<I_Edit_Todo_Modal> = ({ isOpen, title, priority = "Средний", onClose, onUpdate }) => {
     const [updateTitle, setUpdateTitle] = useState(title);
+    const [updatePriority, setUpdatePriority] = useState<TodoPriority>(priority);
     const [inputError, setInputError] = useState(false)
 
     const onPressSave = () => {
@@ -22,7 +25,7 @@ export const EditTodoModal: React.FC<I_Edit_Todo_Modal> = ({ isOpen, title, onCl
             setInputError(true)
             return
         }
-        onUpdate(updateTitle);
+        onUpdate(updateTitle, updatePriority);
         onClose();
     }
 
@@ -34,7 +37,8 @@ export const EditTodoModal: React.FC<I_Edit_Todo_Modal> = ({ isOpen, title, onCl
 
     useEffect(() => {
         setUpdateTitle(title);
-    }, [isOpen])
+        setUpdatePriority(priority);
+    }, [isOpen, title, priority])
 
     return (
 
@@ -48,6 +52,14 @@ export const EditTodoModal: React.FC<I_Edit_Todo_Modal> = ({ isOpen, title, onCl
                         onChangeText={setUpdateTitle}
                         placeholder={"Введите название задачи..."} 
                         isError={inputError}
+                    />
+                </View>
+
+                <View style={styles.priorityContainer}>
+                    <CustomText variant="subtitle">Приоритет:</CustomText>
+                    <PrioritySelector 
+                        selectedPriority={updatePriority} 
+                        onPriorityChange={setUpdatePriority} 
                     />
                 </View>
 
@@ -67,6 +79,10 @@ const styles = StyleSheet.create({
 
     inputContainer: {
         minHeight: 50,
+    },
+
+    priorityContainer: {
+        gap: 10,
     },
 
     buttonsContainer: {
