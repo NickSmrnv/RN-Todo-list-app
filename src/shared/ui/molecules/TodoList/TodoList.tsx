@@ -9,6 +9,9 @@ interface I_Todo_List {
     onDeleteTodo: (id: I_Todo["id"]) => void;
     onUpdateTodo: (id: I_Todo["id"], title: I_Todo["title"], priority?: TodoPriority) => void;
     onReorderTodos: (todos: I_Todo[]) => void;
+    onAddSubtask: (parentId: I_Todo["id"], title: I_Todo["title"], priority?: TodoPriority) => void;
+    onCheckSubtask: (parentId: I_Todo["id"], subtaskId: I_Todo["id"]) => void;
+    onDeleteSubtask: (parentId: I_Todo["id"], subtaskId: I_Todo["id"]) => void;
 }
 
 export const TodoList: React.FC<I_Todo_List> = ({ 
@@ -16,7 +19,10 @@ export const TodoList: React.FC<I_Todo_List> = ({
     onCheckTodo, 
     onDeleteTodo, 
     onUpdateTodo,
-    onReorderTodos
+    onReorderTodos,
+    onAddSubtask,
+    onCheckSubtask,
+    onDeleteSubtask,
 }) => {
     const renderItem = ({ item, drag, isActive }: RenderItemParams<I_Todo>) => {
         return (
@@ -26,9 +32,13 @@ export const TodoList: React.FC<I_Todo_List> = ({
                     title={item.title}
                     isCompleted={item.isCompleted}
                     priority={item.priority}
+                    subtasks={item.subtasks}
                     onCheck={onCheckTodo}
                     onDelete={onDeleteTodo}
                     onUpdate={onUpdateTodo}
+                    onAddSubtask={onAddSubtask}
+                    onCheckSubtask={onCheckSubtask}
+                    onDeleteSubtask={onDeleteSubtask}
                     onLongPress={drag}
                     isDragging={isActive}
                 />

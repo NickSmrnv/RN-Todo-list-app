@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from "@/store";
-import { addTodo, refreshTodos, removeTodo, reorderTodos, selectTodos, toggleTodo, updateTodo } from "@/store/slices/todoSlice";
+import { addSubtask, addTodo, refreshTodos, removeSubtask, removeTodo, reorderTodos, selectTodos, toggleSubtask, toggleTodo, updateTodo } from "@/store/slices/todoSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { I_Todo, TodoPriority } from "../../model/types/todo";
 import { getTodayDate, isSameDate } from "../obj/date";
@@ -25,6 +25,28 @@ const useTodo = () => {
 
     const onCheckTodo = (id: I_Todo["id"]) => {
         dispatch(toggleTodo(id));
+    };
+
+    const onAddSubtask = (parentId: I_Todo["id"], title: I_Todo["title"], priority?: TodoPriority) => {
+        dispatch(
+            addSubtask({
+                parentId,
+                subtask: {
+                    id: Number(new Date()),
+                    title,
+                    isCompleted: false,
+                    priority: priority || "Средний",
+                },
+            })
+        );
+    };
+
+    const onCheckSubtask = (parentId: I_Todo["id"], subtaskId: I_Todo["id"]) => {
+        dispatch(toggleSubtask({ parentId, subtaskId }));
+    };
+
+    const onDeleteSubtask = (parentId: I_Todo["id"], subtaskId: I_Todo["id"]) => {
+        dispatch(removeSubtask({ parentId, subtaskId }));
     };
 
     const onUpdateTodoTitle = (id: I_Todo["id"], title: I_Todo["title"], priority?: TodoPriority) => {
@@ -70,6 +92,9 @@ const useTodo = () => {
     onAddTodo,
     onDeleteTodo,
     onCheckTodo,
+    onAddSubtask,
+    onCheckSubtask,
+    onDeleteSubtask,
     onUpdateTodoTitle,
     onReorderTodos,
     onRefresh,

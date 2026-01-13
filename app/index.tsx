@@ -23,6 +23,9 @@ export default function Index() {
         onAddTodo,
         onDeleteTodo,
         onCheckTodo,
+        onAddSubtask,
+        onCheckSubtask,
+        onDeleteSubtask,
         onUpdateTodoTitle,
         onReorderTodos,
         onRefresh,
@@ -72,6 +75,9 @@ export default function Index() {
                         todos={filteredTodos} 
                         onCheckTodo={onCheckTodo} 
                         onDeleteTodo={onDeleteTodo} 
+                        onAddSubtask={onAddSubtask}
+                        onCheckSubtask={onCheckSubtask}
+                        onDeleteSubtask={onDeleteSubtask}
                         onUpdateTodo={onUpdateTodoTitle}
                         onReorderTodos={onReorderTodos}
                     />

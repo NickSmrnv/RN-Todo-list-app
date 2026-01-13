@@ -65,19 +65,18 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     priorityButton: {
-        flex: 1,
-        paddingVertical: 8,
+        paddingVertical: 4,
         paddingHorizontal: 10,
-        borderRadius: 10,
+        borderRadius: 7,
         alignItems: "center",
         justifyContent: "center",
         borderWidth: 2,
         borderColor: "transparent",
-        minHeight: 20,
+        minHeight: 10,
     },
     selectedButton: {
         borderColor: COLORS.black,
-        borderWidth: 2,
+        borderWidth: 1,
         shadowColor: COLORS.black,
         shadowOffset: {
             width: 0,

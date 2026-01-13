@@ -9,6 +9,7 @@ interface I_Todo_Item_Menu {
     onClose: () => void;
     onEdit: () => void;
     onDelete: () => void;
+    onAddSubtask: () => void;
     anchorPosition?: {
         x: number;
         y: number;
@@ -22,6 +23,7 @@ export const TodoItemMenu: React.FC<I_Todo_Item_Menu> = ({
     onClose,
     onEdit,
     onDelete,
+    onAddSubtask,
     anchorPosition,
 }) => {
     const handleEdit = () => {
@@ -34,7 +36,22 @@ export const TodoItemMenu: React.FC<I_Todo_Item_Menu> = ({
         onDelete();
     };
 
+    const handleAddSubtask = () => {
+        onClose();
+        onAddSubtask();
+    };
+
     const popupItems: I_Popup_Item[] = [
+        {
+            id: "add-subtask",
+            content: (
+                <View style={styles.menuItemContent}>
+                    <Ionicons name="add-circle-outline" size={18} color={COLORS.blue} />
+                    <Text style={styles.menuItemText}>Добавить подзадачу</Text>
+                </View>
+            ),
+            onPress: handleAddSubtask,
+        },
         {
             id: "edit",
             content: (

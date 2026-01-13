@@ -56,7 +56,6 @@ export const EditTodoModal: React.FC<I_Edit_Todo_Modal> = ({ isOpen, title, prio
                 </View>
 
                 <View style={styles.priorityContainer}>
-                    <CustomText variant="subtitle">Приоритет:</CustomText>
                     <PrioritySelector 
                         selectedPriority={updatePriority} 
                         onPriorityChange={setUpdatePriority} 
@@ -74,7 +73,7 @@ export const EditTodoModal: React.FC<I_Edit_Todo_Modal> = ({ isOpen, title, prio
 
 const styles = StyleSheet.create({
     modalContent: {
-        gap: 20,
+        gap: 10,
     },
 
     inputContainer: {
@@ -89,5 +88,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "flex-end",
         gap: 10,
+        marginTop: 10,
     }
 })

@@ -11,9 +11,19 @@ interface I_Add_Todo_Modal {
     onClose: () => void;
     onAdd: (title: I_Todo["title"], priority: TodoPriority) => void;
     isOpen: boolean;
+    titleText?: string;
+    submitText?: string;
+    withPriority?: boolean;
 }
 
-export const AddTodoModal: React.FC<I_Add_Todo_Modal> = ({ isOpen, onClose, onAdd }) => {
+export const AddTodoModal: React.FC<I_Add_Todo_Modal> = ({ 
+    isOpen, 
+    onClose, 
+    onAdd,
+    titleText = "Добавить задачу",
+    submitText = "Добавить",
+    withPriority = true,
+}) => {
     const [title, setTitle] = useState("");
     const [priority, setPriority] = useState<TodoPriority>("Средний");
     const [inputError, setInputError] = useState(false);
@@ -54,7 +64,7 @@ export const AddTodoModal: React.FC<I_Add_Todo_Modal> = ({ isOpen, onClose, onAd
     return (
         <CustomModal isOpen={isOpen} onClose={onClose} animationType="slide">
             <View style={styles.modalContent}>
-                <CustomText variant={"title"}>Добавить задачу</CustomText>
+                <CustomText variant={"title"}>{titleText}</CustomText>
 
                 <View style={styles.inputContainer}>
                     <CustomTextInput 
@@ -66,17 +76,18 @@ export const AddTodoModal: React.FC<I_Add_Todo_Modal> = ({ isOpen, onClose, onAd
                     />
                 </View>
 
-                <View style={styles.priorityContainer}>
-                    <CustomText variant="subtitle">Приоритет:</CustomText>
-                    <PrioritySelector 
-                        selectedPriority={priority} 
-                        onPriorityChange={setPriority} 
-                    />
-                </View>
+                {withPriority && (
+                    <View style={styles.priorityContainer}>
+                        <PrioritySelector 
+                            selectedPriority={priority} 
+                            onPriorityChange={setPriority} 
+                        />
+                    </View>
+                )}
 
                 <View style={styles.buttonsContainer}>
                     <CustomButton label={"Отмена"} onPress={onPressCancel} variant="secondary" />
-                    <CustomButton label={"Добавить"} onPress={onPressAdd} disabled={inputError || !title.trim()} />
+                    <CustomButton label={submitText} onPress={onPressAdd} disabled={inputError || !title.trim()} />
                 </View>
             </View>
         </CustomModal>
@@ -85,7 +96,7 @@ export const AddTodoModal: React.FC<I_Add_Todo_Modal> = ({ isOpen, onClose, onAd
 
 const styles = StyleSheet.create({
     modalContent: {
-        gap: 20,
+        gap: 10,
     },
 
     inputContainer: {
@@ -99,6 +110,7 @@ const styles = StyleSheet.create({
     buttonsContainer: {
         flexDirection: "row",
         justifyContent: "flex-end",
+        marginTop: 20,
         gap: 10,
     }
 })
