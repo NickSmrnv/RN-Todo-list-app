@@ -12,4 +12,5 @@ export const COLORS = {
     light_blue: "#0091D7",
     purple: "#9645BC",
     dark_green: "#30C671",
+    light_gray: "#F5F5F5",
 }

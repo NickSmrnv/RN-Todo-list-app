@@ -1,7 +1,8 @@
+import { TodoItemMenu } from "@/src/features/menus/TodoItemMenu/TodoItemMenu";
 import { DeleteTodoModal } from "@/src/features/modals/DeleteTodoModal/DeleteTodoModal";
 import { EditTodoModal } from "@/src/features/modals/EditTodoModal/EditTodoModal";
 import { I_Todo, TodoPriority } from "@/src/shared/model/types/todo";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, Vibration, View } from "react-native";
 import { COLORS } from "../../../assets/styles/constants/colors-variables";
 import { CustomButton } from "../_Custom/CustomButton/CustomButton";
@@ -40,8 +41,16 @@ export const TodoItem: React.FC<I_Todo_Item> = ({
     onLongPress,
     isDragging = false
 }) => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [anchorPosition, setAnchorPosition] = useState<{
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    } | undefined>(undefined);
+    const buttonRef = useRef<View>(null);
 
     const onPressCheck = () => {
         onCheck(id);
@@ -50,8 +59,24 @@ export const TodoItem: React.FC<I_Todo_Item> = ({
     const onConfirmDelete = () => {
         setIsDeleteModalOpen(false);
         onDelete(id);
-        Vibration.vibrate(100)
+        Vibration.vibrate(300)
     }
+
+    const handleMenuButtonPress = () => {
+        if (isMenuOpen) {
+            setIsMenuOpen(false);
+            return;
+        }
+        buttonRef.current?.measureInWindow((x, y, width, height) => {
+            setAnchorPosition({
+                x: x,
+                y: y,
+                width,
+                height,
+            });
+            setIsMenuOpen(true);
+        });
+    };
 
     return (
         <View style={[styles.container, isDragging && styles.draggingContainer]}>
@@ -80,18 +105,33 @@ export const TodoItem: React.FC<I_Todo_Item> = ({
             </Pressable>
 
             <View style={styles.controlContainer}>
-                <CustomButton icon="pencil" size="small" iconSize={16} onPress={() => setIsEditModalOpen(true)}/>
-                <EditTodoModal 
-                    title={title} 
-                    priority={priority}
-                    isOpen={isEditModalOpen} 
-                    onClose={() => setIsEditModalOpen(false)} 
-                    onUpdate={(title, priority) => onUpdate(id, title, priority)} 
-                />
-
-                <CustomButton variant={"delete"} icon="trash" size="small" iconSize={16} onPress={() => setIsDeleteModalOpen(true)}/>
-                <DeleteTodoModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onDelete={onConfirmDelete}/>
+                <View ref={buttonRef} collapsable={false}>
+                    <CustomButton 
+                        icon="ellipsis-horizontal" 
+                        size="small" 
+                        iconSize={16} 
+                        onPress={handleMenuButtonPress}
+                        style={isMenuOpen ? styles.menuButtonActive : styles.menuButton}
+                    />
+                </View>
+                {isMenuOpen && (
+                    <TodoItemMenu
+                        isOpen={isMenuOpen}
+                        onClose={() => setIsMenuOpen(false)}
+                        onEdit={() => setIsEditModalOpen(true)}
+                        onDelete={() => setIsDeleteModalOpen(true)}
+                        anchorPosition={anchorPosition}
+                    />
+                )}
             </View>
+            <EditTodoModal 
+                title={title} 
+                priority={priority}
+                isOpen={isEditModalOpen} 
+                onClose={() => setIsEditModalOpen(false)} 
+                onUpdate={(title, priority) => onUpdate(id, title, priority)} 
+            />
+            <DeleteTodoModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onDelete={onConfirmDelete}/>
         </View>
     );
 };
@@ -102,10 +142,12 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         paddingVertical: 10,
-        paddingHorizontal: 15,
+        paddingLeft: 15,
+        paddingRight: 10,
         marginVertical: 8,
         borderRadius: 15,
         backgroundColor: COLORS.white,
+        overflow: "visible",
     },
     checkTitleContainer: {
         flexDirection: "row",
@@ -117,6 +159,7 @@ const styles = StyleSheet.create({
     controlContainer: {
         flexDirection: "row",
         gap: 5,
+        position: "relative",
     },
     draggingContainer: {
         opacity: 0.5,
@@ -131,5 +174,11 @@ const styles = StyleSheet.create({
     priorityTagText: {
         color: COLORS.white,
         fontSize: 12,
+    },
+    menuButton: {
+        backgroundColor: "transparent",
+    },
+    menuButtonActive: {
+        backgroundColor: COLORS.light_gray,
     },
 });
