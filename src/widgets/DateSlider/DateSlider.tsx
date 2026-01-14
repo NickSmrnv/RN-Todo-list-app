@@ -4,7 +4,16 @@ import { getTodayDate, getYearDates, isSameDate } from "@/src/shared/lib/obj/dat
 import { DateItem } from "@/src/shared/ui/atom/DateItem/DateItem";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
-import { FlatList, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleSheet, TouchableOpacity, View, ViewToken } from "react-native";
+import {
+    FlatList,
+    LayoutChangeEvent,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    StyleSheet,
+    TouchableOpacity,
+    View,
+    ViewToken,
+} from "react-native";
 
 interface I_Date_Slider {
     onDateChange: (date: Date) => void;
@@ -24,18 +33,18 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
     const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastScrollOffset = useRef<number>(0);
     const todayDate = getTodayDate();
-    
+
     // Вычисляем padding для центрирования элементов
     const centerPadding = containerWidth > 0 ? (containerWidth - ITEM_WIDTH) / 2 : 0;
-    
+
     // Вычисляем разницу в днях между выбранной датой и сегодняшней
     const getDaysDifference = (date1: Date, date2: Date): number => {
         const diffTime = date1.getTime() - date2.getTime();
         return Math.round(diffTime / (1000 * 60 * 60 * 24));
     };
-    
+
     const daysDifference = getDaysDifference(selectedDate, todayDate);
-    
+
     // Определяем, нужно ли показывать кнопки возврата (только если ушел больше чем на 3 дня)
     const showLeftButton = daysDifference > 3;
     const showRightButton = daysDifference < -3;
@@ -49,7 +58,7 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
         // Инициализация: прокрутка к выбранной дате после получения размеров контейнера
         // Выполняем только один раз при монтировании
         if (containerWidth > 0 && !isInitialized.current) {
-            const initialIndex = dates.findIndex(date => isSameDate(date, selectedDate));
+            const initialIndex = dates.findIndex((date) => isSameDate(date, selectedDate));
             if (initialIndex !== -1 && flatListRef.current) {
                 setTimeout(() => {
                     const targetOffset = initialIndex * ITEM_WIDTH;
@@ -61,6 +70,7 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
                 }, 100);
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [containerWidth]);
 
     useEffect(() => {
@@ -72,19 +82,21 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
         };
     }, []);
 
-    const handleViewableItemsChanged = useRef(({ viewableItems: items }: { viewableItems: ViewToken[] }) => {
-        if (items.length > 0) {
-            setViewableItems(items);
-        }
-    }).current;
+    const handleViewableItemsChanged = useRef(
+        ({ viewableItems: items }: { viewableItems: ViewToken[] }) => {
+            if (items.length > 0) {
+                setViewableItems(items);
+            }
+        },
+    ).current;
 
     const updateSelectedDate = (offsetX: number) => {
         // Вычисляем индекс центрального элемента
         const centerIndex = Math.round(offsetX / ITEM_WIDTH);
-        
+
         // Ограничиваем индекс в пределах массива
         const safeIndex = Math.max(0, Math.min(centerIndex, dates.length - 1));
-        
+
         if (safeIndex >= 0 && safeIndex < dates.length) {
             const newSelectedDate = dates[safeIndex];
             if (newSelectedDate && !isSameDate(newSelectedDate, selectedDate)) {
@@ -100,7 +112,7 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
             clearTimeout(scrollTimeoutRef.current);
             scrollTimeoutRef.current = null;
         }
-        
+
         const offsetX = event.nativeEvent.contentOffset.x;
         lastScrollOffset.current = offsetX;
     };
@@ -114,7 +126,7 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
 
         const offsetX = event.nativeEvent.contentOffset.x;
         lastScrollOffset.current = offsetX;
-        
+
         // Обновляем дату сразу после завершения инерции
         updateSelectedDate(offsetX);
     };
@@ -124,10 +136,10 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
         if (scrollTimeoutRef.current) {
             clearTimeout(scrollTimeoutRef.current);
         }
-        
+
         const offsetX = event.nativeEvent.contentOffset.x;
         lastScrollOffset.current = offsetX;
-        
+
         // Если пользователь отпустил палец, но инерция еще не закончилась,
         // ждем немного, чтобы увидеть, будет ли вызван onMomentumScrollEnd
         scrollTimeoutRef.current = setTimeout(() => {
@@ -138,7 +150,7 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
     };
 
     const scrollToToday = () => {
-        const todayIndex = dates.findIndex(date => isSameDate(date, todayDate));
+        const todayIndex = dates.findIndex((date) => isSameDate(date, todayDate));
         if (todayIndex !== -1 && flatListRef.current) {
             const targetOffset = todayIndex * ITEM_WIDTH;
             flatListRef.current.scrollToOffset({
@@ -160,21 +172,21 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
                 clearTimeout(scrollTimeoutRef.current);
                 scrollTimeoutRef.current = null;
             }
-            
+
             // Вычисляем точный offset для центрирования элемента
             // offset = index * ITEM_WIDTH (padding уже учтен в contentContainerStyle)
             const targetOffset = index * ITEM_WIDTH;
-            
+
             // Прокручиваем к нужному offset для точного центрирования
             flatListRef.current.scrollToOffset({
                 offset: targetOffset,
                 animated: true,
             });
-            
+
             // Обновляем выбранную дату сразу и после завершения анимации
             setSelectedDate(date);
             onDateChange(date);
-            
+
             // Дополнительное обновление после анимации для надежности
             setTimeout(() => {
                 updateSelectedDate(targetOffset);
@@ -185,11 +197,7 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
     const renderItem = ({ item, index }: { item: Date; index: number }) => {
         const isSelected = isSameDate(item, selectedDate);
         return (
-            <DateItem
-                date={item}
-                isSelected={isSelected}
-                onPress={() => handleDatePress(item, index)}
-            />
+            <DateItem date={item} isSelected={isSelected} onPress={() => handleDatePress(item, index)} />
         );
     };
 
@@ -218,7 +226,7 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
                             {
                                 paddingLeft: centerPadding,
                                 paddingRight: centerPadding,
-                            }
+                            },
                         ]}
                         onViewableItemsChanged={handleViewableItemsChanged}
                         onScroll={handleScroll}
@@ -313,4 +321,5 @@ const styles = StyleSheet.create({
         right: 10,
     },
 });
+
 

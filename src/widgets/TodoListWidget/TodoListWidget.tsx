@@ -1,7 +1,7 @@
 import React from "react";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
-import { I_Todo, TodoPriority } from "../../../model/types/todo";
-import { TodoItem } from "../../atom/TodoItem/TodoItem";
+import { I_Todo, TodoPriority } from "@/src/shared/model/types/todo";
+import { TodoItemCard } from "@/src/widgets/TodoItemCard/TodoItemCard";
 
 interface I_Todo_List {
     todos: I_Todo[];
@@ -14,10 +14,10 @@ interface I_Todo_List {
     onDeleteSubtask: (parentId: I_Todo["id"], subtaskId: I_Todo["id"]) => void;
 }
 
-export const TodoList: React.FC<I_Todo_List> = ({ 
-    todos, 
-    onCheckTodo, 
-    onDeleteTodo, 
+export const TodoListWidget: React.FC<I_Todo_List> = ({
+    todos,
+    onCheckTodo,
+    onDeleteTodo,
     onUpdateTodo,
     onReorderTodos,
     onAddSubtask,
@@ -27,7 +27,7 @@ export const TodoList: React.FC<I_Todo_List> = ({
     const renderItem = ({ item, drag, isActive }: RenderItemParams<I_Todo>) => {
         return (
             <ScaleDecorator activeScale={1.02}>
-                <TodoItem
+                <TodoItemCard
                     id={item.id}
                     title={item.title}
                     isCompleted={item.isCompleted}
@@ -56,10 +56,12 @@ export const TodoList: React.FC<I_Todo_List> = ({
             nestedScrollEnabled={true}
             contentContainerStyle={{ paddingHorizontal: 20 }}
             animationConfig={{
-                damping: 3,        // уменьшить с 20 (меньше затухания = быстрее)
-                mass: 0.1,          // уменьшить с 0.2 (меньше массы = быстрее)
-                stiffness: 50,     // увеличить с 100 (больше жесткости = быстрее)
+                damping: 3,
+                mass: 0.1,
+                stiffness: 50,
             }}
         />
     );
 };
+
+

@@ -1,5 +1,4 @@
 import { AddTodoModal } from "@/src/features/modals/AddTodoModal/AddTodoModal";
-import { DateSlider } from "@/src/features/widgets/DateSlider/DateSlider";
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
 import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import useTodo from "@/src/shared/lib/hooks/useTodo";
@@ -7,7 +6,8 @@ import { getTodayDate } from "@/src/shared/lib/obj/date";
 import { TodoPriority } from "@/src/shared/model/types/todo";
 import { Header } from "@/src/shared/ui/atom/Header/Header";
 import { CustomButton } from "@/src/shared/ui/atom/_Custom/CustomButton/CustomButton";
-import { TodoList } from "@/src/shared/ui/molecules/TodoList/TodoList";
+import { DateSlider } from "@/src/widgets/DateSlider/DateSlider";
+import { TodoListWidget } from "@/src/widgets/TodoListWidget/TodoListWidget";
 import { useState } from "react";
 import { RefreshControl, ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -76,7 +76,7 @@ export default function Index() {
                     <DateSlider onDateChange={handleDateChange} />
                 </View>
                 <View style={[style.content, { backgroundColor: mode === "dark" ? colors.card : COLORS.blue }]}>
-                    <TodoList 
+                    <TodoListWidget 
                         todos={filteredTodos} 
                         onCheckTodo={onCheckTodo} 
                         onDeleteTodo={onDeleteTodo} 
