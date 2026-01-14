@@ -1,8 +1,8 @@
-import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import { getDateLabel } from "@/src/shared/lib/obj/date";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { CustomText } from "../_Custom/CustomText/CustomText";
 
 interface I_Header {
@@ -13,22 +13,54 @@ interface I_Header {
 
 export const Header: React.FC<I_Header> = ({ totalTodos, completedTodos, selectedDate }) => {
     const dateLabel = getDateLabel(selectedDate);
+    const { colors, mode, preference, setPreference } = useTheme();
+
+    const handleToggleTheme = () => {
+        if (preference === "system") {
+            // из "системной" переключаемся в противоположную от текущей
+            setPreference(mode === "dark" ? "light" : "dark");
+        } else if (preference === "light") {
+            setPreference("dark");
+        } else {
+            setPreference("system");
+        }
+    };
+
+    const themeIconName =
+        preference === "system"
+            ? "contrast-outline"
+            : preference === "dark"
+            ? "moon"
+            : "sunny";
     
     return (
         <View style={styles.container}>
             <View style={styles.content}>
                 <CustomText variant={"title"}>{dateLabel}</CustomText>
 
-                <View style={styles.counterContainer}>
-                    <Ionicons 
-                        name="checkmark-circle-outline" 
-                        size={20} 
-                        color={COLORS.black} 
-                        style={styles.icon}
-                    />
-                    <CustomText variant={"primary"}>
-                        {completedTodos} / {totalTodos}
-                    </CustomText>
+                <View style={styles.rightSection}>
+                    <View style={styles.counterContainer}>
+                        <Ionicons 
+                            name="checkmark-circle-outline" 
+                            size={20} 
+                            color={colors.text} 
+                            style={styles.icon}
+                        />
+                        <CustomText variant={"primary"}>
+                            {completedTodos} / {totalTodos}
+                        </CustomText>
+                    </View>
+                    <Pressable
+                        onPress={handleToggleTheme}
+                        hitSlop={8}
+                        style={styles.themeToggleButton}
+                    >
+                        <Ionicons
+                            name={themeIconName}
+                            size={20}
+                            color={colors.text}
+                        />
+                    </Pressable>
                 </View>
             </View>
         </View>
@@ -48,6 +80,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         gap: 5,
     },
+    rightSection: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+    },
     counterContainer: {
         flexDirection: "row",
         alignItems: "center",
@@ -55,5 +92,9 @@ const styles = StyleSheet.create({
     },
     icon: {
         marginRight: 0,
+    },
+    themeToggleButton: {
+        padding: 4,
+        borderRadius: 999,
     },
 });

@@ -1,4 +1,5 @@
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import { getTodayDate, getYearDates, isSameDate } from "@/src/shared/lib/obj/date";
 import { DateItem } from "@/src/shared/ui/atom/DateItem/DateItem";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,6 +14,7 @@ interface I_Date_Slider {
 const ITEM_WIDTH = 80;
 
 export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate }) => {
+    const { colors, mode } = useTheme();
     const [selectedDate, setSelectedDate] = useState<Date>(initialDate || getTodayDate());
     const [dates, setDates] = useState<Date[]>(() => getYearDates());
     const flatListRef = useRef<FlatList>(null);
@@ -240,7 +242,14 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
                     />
                     {showLeftButton && (
                         <TouchableOpacity
-                            style={[styles.returnButton, styles.leftButton]}
+                            style={[
+                                styles.returnButton,
+                                styles.leftButton,
+                                {
+                                    backgroundColor: colors.primary,
+                                    shadowColor: mode === "dark" ? "#000000" : COLORS.black,
+                                },
+                            ]}
                             onPress={scrollToToday}
                             activeOpacity={0.7}
                         >
@@ -249,7 +258,14 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
                     )}
                     {showRightButton && (
                         <TouchableOpacity
-                            style={[styles.returnButton, styles.rightButton]}
+                            style={[
+                                styles.returnButton,
+                                styles.rightButton,
+                                {
+                                    backgroundColor: colors.primary,
+                                    shadowColor: mode === "dark" ? "#000000" : COLORS.black,
+                                },
+                            ]}
                             onPress={scrollToToday}
                             activeOpacity={0.7}
                         >

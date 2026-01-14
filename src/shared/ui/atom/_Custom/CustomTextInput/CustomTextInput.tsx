@@ -1,4 +1,5 @@
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import React from "react";
 import { StyleSheet, TextInput, TextInputProps } from "react-native";
 
@@ -10,11 +11,22 @@ export const CustomTextInput = React.forwardRef<TextInput, I_Custom_TextInput>((
     isError = false,
     ...props
 }, ref) => {
+    const { colors } = useTheme();
+
     return (
         <TextInput
             ref={ref}
-            style={[styles.input, props.style, isError && styles.error]}
-            placeholderTextColor={isError ? COLORS.pink : undefined}
+            style={[
+                styles.input,
+                {
+                    color: isError ? COLORS.pink : colors.text,
+                    borderColor: isError ? COLORS.pink : colors.border,
+                    backgroundColor: colors.inputBackground,
+                },
+                props.style,
+                isError && styles.error,
+            ]}
+            placeholderTextColor={isError ? COLORS.pink : colors.mutedText}
             {...props}
         />
     );

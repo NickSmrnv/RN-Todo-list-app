@@ -1,6 +1,7 @@
+import { ThemeProvider } from "@/src/shared/lib/context/ThemeContext";
 import { Stack } from "expo-router";
-import { Provider } from "react-redux";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Provider } from "react-redux";
 import { persistStore } from "redux-persist";
 import { PersistGate } from "redux-persist/integration/react";
 import store from "../store";
@@ -12,7 +13,9 @@ export default function RootLayout() {
         <GestureHandlerRootView style={{ flex: 1 }}>
             <Provider store={store}>
                 <PersistGate loading={null} persistor={persister}>
-                    <Stack screenOptions={{ headerShown: false }} />
+                    <ThemeProvider>
+                        <Stack screenOptions={{ headerShown: false }} />
+                    </ThemeProvider>
                 </PersistGate>
             </Provider>
         </GestureHandlerRootView>

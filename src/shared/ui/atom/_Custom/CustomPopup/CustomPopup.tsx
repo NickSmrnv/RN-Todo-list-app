@@ -1,4 +1,5 @@
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import React, { ReactNode } from "react";
 import { Pressable, StyleSheet, View, ViewStyle } from "react-native";
 
@@ -19,10 +20,23 @@ export const CustomPopup: React.FC<I_Custom_Popup> = ({
     items,
     style,
 }) => {
+    const { colors, mode } = useTheme();
+
     if (!isOpen) return null;
 
     return (
-        <View style={[styles.popupContainer, style]}>
+        <View
+            style={[
+                styles.popupContainer,
+                {
+                    backgroundColor: colors.card,
+                    borderColor: mode === "dark" ? COLORS.light_gray : "transparent",
+                    borderWidth: mode === "dark" ? 1 : 0,
+                    shadowColor: mode === "dark" ? "#000000" : "#000000",
+                },
+                style,
+            ]}
+        >
             {items.map((item) => (
                 <Pressable
                     key={item.id}
@@ -41,7 +55,6 @@ export const CustomPopup: React.FC<I_Custom_Popup> = ({
 const styles = StyleSheet.create({
     popupContainer: {
         position: "absolute",
-        backgroundColor: COLORS.white,
         borderRadius: 12,
         padding: 8,
         minWidth: 180,

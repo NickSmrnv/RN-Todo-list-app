@@ -1,4 +1,5 @@
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import { StyleSheet, Text, TextProps } from "react-native";
 
 interface I_Custom_Text extends TextProps {
@@ -6,8 +7,18 @@ interface I_Custom_Text extends TextProps {
 }
 
 export const CustomText: React.FC<I_Custom_Text> = ({ variant = "primary", style, ...props }) => {
+    const { colors } = useTheme();
+
     return (
-        <Text style={[styles.text, styles[variant as keyof typeof styles], style]} {...props} />
+        <Text
+            style={[
+                styles.text,
+                styles[variant as keyof typeof styles],
+                { color: colors.text },
+                style,
+            ]}
+            {...props}
+        />
     );
 };
 

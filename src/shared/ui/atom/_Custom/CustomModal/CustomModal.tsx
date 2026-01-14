@@ -1,4 +1,5 @@
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import React, { ReactNode } from "react";
 import { Modal, StyleSheet, TouchableWithoutFeedback, View } from "react-native";
 
@@ -11,13 +12,14 @@ interface I_Custom_Modal {
 
 export const CustomModal: React.FC<I_Custom_Modal> = ({ isOpen, children, onClose, animationType = "fade" }) => {
     const isSlide = animationType === "slide";
+    const { colors } = useTheme();
 
     return (
         <Modal visible={isOpen} onRequestClose={onClose} animationType={animationType} transparent={true}>
             <TouchableWithoutFeedback onPress={onClose}>
-                <View style={[styles.modalBgContainer, isSlide && styles.modalBgContainerSlide]}>
+                <View style={[styles.modalBgContainer, isSlide && styles.modalBgContainerSlide, { backgroundColor: colors.overlay }]}>
                     <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
-                        <View style={[styles.content, isSlide && styles.contentSlide]}>
+                        <View style={[styles.content, isSlide && styles.contentSlide, { backgroundColor: colors.card }]}>
                             {children}
                         </View>
                     </TouchableWithoutFeedback>

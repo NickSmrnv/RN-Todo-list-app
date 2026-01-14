@@ -1,4 +1,5 @@
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import React, { useEffect, useRef } from "react";
 import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 import { CustomText } from "../_Custom/CustomText/CustomText";
@@ -13,6 +14,7 @@ const SELECTED_SCALE = 1;
 const NORMAL_SCALE = 0.8;
 
 export const DateItem: React.FC<I_Date_Item> = ({ date, isSelected, onPress }) => {
+    const { colors, mode } = useTheme();
     const scaleAnim = useRef(new Animated.Value(isSelected ? SELECTED_SCALE : NORMAL_SCALE)).current;
     
     const day = date.getDate();
@@ -49,7 +51,14 @@ export const DateItem: React.FC<I_Date_Item> = ({ date, isSelected, onPress }) =
                 onPress={onPress}
                 style={[
                     styles.container,
-                    isSelected && styles.selectedContainer,
+                    {
+                        backgroundColor: mode === "dark" ? colors.card : COLORS.white,
+                        borderColor: mode === "dark" ? colors.border : COLORS.blue,
+                    },
+                    isSelected && {
+                        backgroundColor: colors.primary,
+                        borderColor: colors.primary,
+                    },
                     isToday() && !isSelected && styles.todayContainer
                 ]}
                 activeOpacity={0.7}

@@ -1,4 +1,5 @@
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
@@ -24,38 +25,50 @@ export const CustomButton: React.FC<I_Custom_Button> = ({
     label,
     icon,
     iconSize = 14,
-    iconColor = COLORS.black,
+    iconColor,
     size,
     variant = "primary",
     disabled = false,
     onPress,
     style,
 }) => {
+    const { colors, mode } = useTheme();
+
+    const variantStyle: ViewStyle =
+        variant === "secondary"
+            ? { backgroundColor: COLORS.green }
+            : variant === "delete"
+            ? { backgroundColor: colors.accent }
+            : { backgroundColor: colors.primary };
+
     return (
         <TouchableOpacity
             style={[
                 styles.button,
+                variantStyle,
                 disabled && styles.disabled,
                 // Sizes
                 size === "small" ? styles.small : null,
                 size === "large" ? styles.large : null,
-                // Variants
-                variant === "secondary" ? styles.secondary : null,
-                variant === "delete" ? styles.delete : null,
                 style,
             ]}
             disabled={disabled}
             onPress={onPress}
         >
             {label && <Text style={styles.text}>{label}</Text>}
-            {icon && <Ionicons name={icon} size={iconSize} color={iconColor} />}
+            {icon && (
+                <Ionicons
+                    name={icon}
+                    size={iconSize}
+                    color={iconColor ?? (mode === "dark" ? COLORS.white : COLORS.black)}
+                />
+            )}
         </TouchableOpacity>
     );
 };
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: COLORS.blue,
         justifyContent: "center",
         alignItems: "center",
         flexDirection: "row",

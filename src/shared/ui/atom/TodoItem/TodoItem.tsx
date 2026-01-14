@@ -2,10 +2,11 @@ import { TodoItemMenu } from "@/src/features/menus/TodoItemMenu/TodoItemMenu";
 import { AddTodoModal } from "@/src/features/modals/AddTodoModal/AddTodoModal";
 import { DeleteTodoModal } from "@/src/features/modals/DeleteTodoModal/DeleteTodoModal";
 import { EditTodoModal } from "@/src/features/modals/EditTodoModal/EditTodoModal";
+import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import { I_Todo, TodoPriority } from "@/src/shared/model/types/todo";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, Vibration, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, LayoutAnimation, Pressable, StyleSheet, Text, UIManager, Vibration, View } from "react-native";
 import { COLORS } from "../../../assets/styles/constants/colors-variables";
 import { CustomButton } from "../_Custom/CustomButton/CustomButton";
 import { CustomCheckbox } from "../_Custom/CustomCheckbox/CustomCheckbox";
@@ -50,6 +51,7 @@ export const TodoItem: React.FC<I_Todo_Item> = ({
     onLongPress,
     isDragging = false
 }) => {
+    const { colors, mode } = useTheme();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -62,6 +64,13 @@ export const TodoItem: React.FC<I_Todo_Item> = ({
         height: number;
     } | undefined>(undefined);
     const buttonRef = useRef<View>(null);
+    
+    const hasSubtasks = !!subtasks && subtasks.length > 0;
+    
+    // Анимации для stackCard и подзадач
+    const stackOpacity = useRef(new Animated.Value(hasSubtasks && !isExpanded ? 1 : 0)).current;
+    const stackScale = useRef(new Animated.Value(hasSubtasks && !isExpanded ? 1 : 0.8)).current;
+    const subtasksOpacity = useRef(new Animated.Value(isExpanded ? 1 : 0)).current;
 
     const onPressCheck = () => {
         onCheck(id);
@@ -69,8 +78,54 @@ export const TodoItem: React.FC<I_Todo_Item> = ({
 
     const handleToggleExpand = () => {
         if (!subtasks || subtasks.length === 0) return;
+        
+        // Настройка LayoutAnimation для плавной анимации высоты
+        if (UIManager.setLayoutAnimationEnabledExperimental) {
+            UIManager.setLayoutAnimationEnabledExperimental(true);
+        }
+        LayoutAnimation.configureNext({
+            duration: 250,
+            create: {
+                type: LayoutAnimation.Types.easeInEaseOut,
+                property: LayoutAnimation.Properties.opacity,
+            },
+            update: {
+                type: LayoutAnimation.Types.spring,
+                springDamping: 0.7,
+            },
+        });
+        
         setIsExpanded((prev) => !prev);
     };
+
+    // Анимация раскрытия/закрытия stackCard и подзадач
+    useEffect(() => {
+        if (hasSubtasks) {
+            // Анимация stackCard (показывается когда свернуто)
+            Animated.parallel([
+                Animated.spring(stackOpacity, {
+                    toValue: isExpanded ? 0 : 1,
+                    useNativeDriver: true,
+                    tension: 50,
+                    friction: 7,
+                }),
+                Animated.spring(stackScale, {
+                    toValue: isExpanded ? 0.8 : 1,
+                    useNativeDriver: true,
+                    tension: 50,
+                    friction: 7,
+                }),
+            ]).start();
+
+            // Анимация подзадач (показываются когда развернуто)
+            Animated.spring(subtasksOpacity, {
+                toValue: isExpanded ? 1 : 0,
+                useNativeDriver: true,
+                tension: 50,
+                friction: 7,
+            }).start();
+        }
+    }, [isExpanded, hasSubtasks]);
 
     const onConfirmDelete = () => {
         setIsDeleteModalOpen(false);
@@ -107,11 +162,20 @@ export const TodoItem: React.FC<I_Todo_Item> = ({
         onDeleteSubtask(id, subtaskId);
     };
 
-    const hasSubtasks = !!subtasks && subtasks.length > 0;
-
     return (
         <View style={[styles.container, isDragging && styles.draggingContainer, isCompleted && styles.completedContainer]}>
-            <View style={[styles.mainCard, hasSubtasks && styles.mainCardWithStack]}>
+            <View
+                style={[
+                    styles.mainCard,
+                    hasSubtasks && styles.mainCardWithStack,
+                    {
+                        backgroundColor: colors.card,
+                        shadowColor: mode === "dark" ? "#000000" : COLORS.black,
+                        borderWidth: mode === "dark" ? 0.5 : 0,
+                        borderColor: mode === "dark" ? COLORS.light_gray : "transparent",
+                    },
+                ]}
+            >
                 <View style={styles.mainRow}>
                     <View style={styles.checkTitleContainer}>
                         <CustomCheckbox checked={isCompleted} onCheck={onPressCheck}/>
@@ -119,6 +183,7 @@ export const TodoItem: React.FC<I_Todo_Item> = ({
                             <Text
                                 style={{
                                     flexShrink: 1,
+                                    color: colors.text,
                                     textDecorationLine: isCompleted
                                         ? "line-through"
                                         : "none",
@@ -160,31 +225,90 @@ export const TodoItem: React.FC<I_Todo_Item> = ({
                 {hasSubtasks && (
                     <Pressable
                         onPress={handleToggleExpand}
-                        style={[styles.subtasksBadge, styles.subtasksBadgeFloating]}
+                        style={[
+                            styles.subtasksBadge,
+                            styles.subtasksBadgeFloating,
+                            {
+                                backgroundColor: mode === "dark" ? colors.card : COLORS.light_gray,
+                                borderWidth: mode === "dark" ? 0.5 : 0,
+                                borderColor: COLORS.light_gray,
+                                shadowColor: mode === "dark" ? "#000000" : COLORS.black,
+                            },
+                        ]}
                         hitSlop={8}
                     >
 
-                        <Text style={styles.subtasksBadgeText}>{subtasks?.length}</Text>
+                        <Text
+                            style={[
+                                styles.subtasksBadgeText,
+                                { color: mode === "dark" ? colors.primary : COLORS.blue },
+                            ]}
+                        >
+                            {subtasks?.length}
+                        </Text>
                     </Pressable>
                 )}
             </View>
 
-            {hasSubtasks && !isExpanded && (
-                <View style={styles.stackPreviewContainer} pointerEvents="none">
-                    <View style={[styles.stackCard, styles.stackCardSecond]} />
-                    <View style={[styles.stackCard, styles.stackCardThird]} />
-                </View>
+            {hasSubtasks && (
+                <Animated.View 
+                    style={[
+                        styles.stackPreviewContainer, 
+                        {
+                            opacity: stackOpacity,
+                            transform: [{ scale: stackScale }],
+                        }
+                    ]} 
+                    pointerEvents="none"
+                >
+                    <View
+                        style={[
+                            styles.stackCard,
+                            styles.stackCardSecond,
+                            {
+                                backgroundColor: colors.card,
+                                borderColor: COLORS.light_gray,
+                                shadowColor: mode === "dark" ? "#000000" : COLORS.black,
+                            },
+                        ]}
+                    />
+                    <View
+                        style={[
+                            styles.stackCard,
+                            styles.stackCardThird,
+                            {
+                                backgroundColor: colors.card,
+                                borderColor: COLORS.light_gray,
+                                shadowColor: mode === "dark" ? "#000000" : COLORS.black,
+                            },
+                        ]}
+                    />
+                </Animated.View>
             )}
 
-            {hasSubtasks && isExpanded && (
-                <View style={styles.subtasksContainer}>
-                    {subtasks?.map((subtask, index) => (
+            {hasSubtasks && (
+                <Animated.View 
+                    style={[
+                        styles.subtasksContainer,
+                        {
+                            opacity: subtasksOpacity,
+                        }
+                    ]}
+                    pointerEvents={isExpanded ? "auto" : "none"}
+                >
+                    {isExpanded && subtasks?.map((subtask, index) => (
                         <View
                             key={subtask.id}
                             style={[
                                 styles.subtaskCard,
                                 index > 0 && { marginTop: 6 },
                                 subtask.isCompleted && styles.completedSubtaskCard,
+                                {
+                                    backgroundColor: colors.card,
+                                    shadowColor: mode === "dark" ? "#000000" : COLORS.black,
+                                    borderWidth: mode === "dark" ? 0.5 : 0,
+                                    borderColor: mode === "dark" ? COLORS.light_gray : "transparent",
+                                },
                             ]}
                         >
                             <View style={styles.subtaskRow}>
@@ -195,6 +319,7 @@ export const TodoItem: React.FC<I_Todo_Item> = ({
                                 <Text
                                     style={[
                                         styles.subtaskText,
+                                        { color: colors.text },
                                         subtask.isCompleted && styles.subtaskTextCompleted,
                                     ]}
                                 >
@@ -208,13 +333,13 @@ export const TodoItem: React.FC<I_Todo_Item> = ({
                                     <Ionicons
                                         name="close"
                                         size={16}
-                                        color={COLORS.black}
+                                        color={mode === "dark" ? colors.text : COLORS.black}
                                     />
                                 </Pressable>
                             </View>
                         </View>
                     ))}
-                </View>
+                </Animated.View>
             )}
 
             <EditTodoModal 
@@ -324,13 +449,13 @@ const styles = StyleSheet.create({
         position: "relative",
         marginTop: -6,
         paddingHorizontal: 10,
-        height: 20,
+        height: 10,
     },
     stackCard: {
         position: "absolute",
         left: 4,
         right: 4,
-        height: 20,
+        height: 14,
         borderRadius: 8,
         backgroundColor: COLORS.white,
         borderWidth: 1,
@@ -341,19 +466,19 @@ const styles = StyleSheet.create({
         shadowRadius: 3,
     },
     stackCardSecond: {
-        top: -16,
+        top: -12,
         zIndex: -1,
     },
     stackCardThird: {
-        top: -10,
+        top: -7,
         left: 6,
         right: 6,
         zIndex: -2,
     },
     subtasksContainer: {
         marginTop: -4,
-        paddingLeft: 10,
-        paddingRight: 7,
+        paddingLeft: 18,
+        paddingRight: 18,
         gap: 2,
     },
     subtaskCard: {

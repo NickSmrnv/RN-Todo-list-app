@@ -1,6 +1,7 @@
 import { AddTodoModal } from "@/src/features/modals/AddTodoModal/AddTodoModal";
 import { DateSlider } from "@/src/features/widgets/DateSlider/DateSlider";
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import useTodo from "@/src/shared/lib/hooks/useTodo";
 import { getTodayDate } from "@/src/shared/lib/obj/date";
 import { TodoPriority } from "@/src/shared/model/types/todo";
@@ -13,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Index() {
     const insets = useSafeAreaInsets();
+    const { colors, mode } = useTheme();
     const [refreshing, setRefreshing] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(getTodayDate());
@@ -50,8 +52,11 @@ export default function Index() {
     };
 
     return (
-        <View style={{ paddingTop: insets.top, ...style.container }}>
-            <StatusBar barStyle={"dark-content"} />
+        <View style={[style.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
+            <StatusBar
+                barStyle={mode === "dark" ? "light-content" : "dark-content"}
+                backgroundColor={colors.background}
+            />
             <ScrollView
                 style={style.scrollView}
                 contentContainerStyle={style.scrollContent}
@@ -70,7 +75,7 @@ export default function Index() {
                 <View style={style.dateSliderContainer}>
                     <DateSlider onDateChange={handleDateChange} />
                 </View>
-                <View style={style.content}>
+                <View style={[style.content, { backgroundColor: mode === "dark" ? colors.card : COLORS.blue }]}>
                     <TodoList 
                         todos={filteredTodos} 
                         onCheckTodo={onCheckTodo} 
@@ -87,9 +92,13 @@ export default function Index() {
                 <CustomButton
                     icon="add"
                     iconSize={30}
-                    iconColor={COLORS.black}
+                    iconColor={mode === "dark" ? COLORS.white : COLORS.black}
                     onPress={() => setIsAddModalOpen(true)}
-                    style={style.fabButton}
+                    style={{
+                        ...style.fabButton,
+                        backgroundColor: mode === "dark" ? colors.primary : COLORS.white,
+                        shadowColor: mode === "dark" ? "#000000" : COLORS.black,
+                    }}
                 />
             </View>
             <AddTodoModal
@@ -104,7 +113,6 @@ export default function Index() {
 const style = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.white,
         alignItems: "center",
     },
     scrollView: {
@@ -136,9 +144,7 @@ const style = StyleSheet.create({
         paddingVertical: 0,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: COLORS.white,
         elevation: 8,
-        shadowColor: COLORS.black,
         shadowOffset: {
             width: 0,
             height: 5,
