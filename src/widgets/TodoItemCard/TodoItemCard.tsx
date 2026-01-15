@@ -9,17 +9,25 @@ import { CustomButton } from "@/src/shared/ui/atom/_Custom/CustomButton/CustomBu
 import { CustomCheckbox } from "@/src/shared/ui/atom/_Custom/CustomCheckbox/CustomCheckbox";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    Animated,
     LayoutAnimation,
     Pressable,
+    Animated as RNAnimated,
     StyleSheet,
     Text,
     UIManager,
     Vibration,
     View,
 } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+    interpolate,
+    runOnJS,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+} from "react-native-reanimated";
 
 interface I_Todo_Item extends I_Todo {
     onCheck: (id: I_Todo["id"]) => void;
@@ -76,12 +84,16 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
     } | undefined>(undefined);
     const buttonRef = useRef<View>(null);
 
+    // Анимация для свайпа
+    const translateX = useSharedValue(0);
+    const SWIPE_THRESHOLD = 80; // Порог для открытия модального окна
+
     const hasSubtasks = !!subtasks && subtasks.length > 0;
 
     // Анимации для stackCard и подзадач
-    const stackOpacity = useRef(new Animated.Value(hasSubtasks && !isExpanded ? 1 : 0)).current;
-    const stackScale = useRef(new Animated.Value(hasSubtasks && !isExpanded ? 1 : 0.8)).current;
-    const subtasksOpacity = useRef(new Animated.Value(isExpanded ? 1 : 0)).current;
+    const stackOpacity = useRef(new RNAnimated.Value(hasSubtasks && !isExpanded ? 1 : 0)).current;
+    const stackScale = useRef(new RNAnimated.Value(hasSubtasks && !isExpanded ? 1 : 0.8)).current;
+    const subtasksOpacity = useRef(new RNAnimated.Value(isExpanded ? 1 : 0)).current;
 
     // Ключ для хранения состояния разворота подзадач
     const EXPANDED_STATE_KEY = "subtasksExpandedState";
@@ -155,14 +167,14 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
     useEffect(() => {
         if (hasSubtasks) {
             // Анимация stackCard (показывается когда свернуто)
-            Animated.parallel([
-                Animated.spring(stackOpacity, {
+            RNAnimated.parallel([
+                RNAnimated.spring(stackOpacity, {
                     toValue: isExpanded ? 0 : 1,
                     useNativeDriver: true,
                     tension: 50,
                     friction: 7,
                 }),
-                Animated.spring(stackScale, {
+                RNAnimated.spring(stackScale, {
                     toValue: isExpanded ? 0.8 : 1,
                     useNativeDriver: true,
                     tension: 50,
@@ -171,7 +183,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
             ]).start();
 
             // Анимация подзадач (показываются когда развернуто)
-            Animated.spring(subtasksOpacity, {
+            RNAnimated.spring(subtasksOpacity, {
                 toValue: isExpanded ? 1 : 0,
                 useNativeDriver: true,
                 tension: 50,
@@ -217,6 +229,112 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
         onDeleteSubtask(id, subtaskId);
     };
 
+    // Флаг для отслеживания монтирования компонента
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    // Обработчики для открытия модальных окон из жеста
+    const openDeleteModal = useCallback(() => {
+        if (isMountedRef.current) {
+            setIsDeleteModalOpen(true);
+        }
+    }, []);
+
+    const openEditModal = useCallback(() => {
+        if (isMountedRef.current) {
+            setIsEditModalOpen(true);
+        }
+    }, []);
+
+    // Жест панорамирования для свайпа
+    const panGesture = useMemo(
+        () =>
+            Gesture.Pan()
+                .activeOffsetX([-5, 5]) // Активируется только при горизонтальном движении
+                .failOffsetY([-5, 5]) // Не активируется при вертикальном движении
+                .enabled(!isDragging) // Отключаем при перетаскивании
+                .minPointers(1)
+                .maxPointers(1)
+                .onChange((event) => {
+                    "worklet";
+                    // Ограничиваем свайп только по горизонтали
+                    if (Math.abs(event.translationX) > Math.abs(event.translationY)) {
+                        const clampedX = Math.max(-75, Math.min(75, event.translationX));
+                        translateX.value = clampedX;
+                    }
+                })
+                .onEnd((event) => {
+                    "worklet";
+                    const { translationX, velocityX } = event;
+
+                    // Если свайп влево (отрицательное значение) и превышен порог
+                    if (translationX < -SWIPE_THRESHOLD || velocityX < -500) {
+                        // Открываем модальное окно удаления
+                        runOnJS(openDeleteModal)();
+                        // Возвращаем карточку в исходное положение быстро
+                        translateX.value = withSpring(0, {
+                            damping: 100,
+                            stiffness: 400,
+                        });
+                    }
+                    // Если свайп вправо (положительное значение) и превышен порог
+                    else if (translationX > SWIPE_THRESHOLD || velocityX > 500) {
+                        // Открываем модальное окно редактирования
+                        runOnJS(openEditModal)();
+                        // Возвращаем карточку в исходное положение быстро
+                        translateX.value = withSpring(0, {
+                            damping: 100,
+                            stiffness: 400,
+                        });
+                    }
+                    // Если порог не достигнут, возвращаем карточку в исходное положение
+                    else {
+                        translateX.value = withSpring(0, {
+                            damping: 100,
+                            stiffness: 400,
+                        });
+                    }
+                }),
+        [isDragging, openDeleteModal, openEditModal]
+    );
+
+    // Анимированные стили для карточки
+    const animatedCardStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateX: translateX.value }],
+        };
+    });
+
+    // Анимированные стили для иконок действий
+    const deleteIconAnimatedStyle = useAnimatedStyle(() => {
+        const opacity = interpolate(
+            translateX.value,
+            [-75, -SWIPE_THRESHOLD, 0],
+            [1, 0.7, 0],
+            "clamp"
+        );
+        return {
+            opacity,
+        };
+    });
+
+    const editIconAnimatedStyle = useAnimatedStyle(() => {
+        const opacity = interpolate(
+            translateX.value,
+            [0, SWIPE_THRESHOLD, 75],
+            [0, 0.7, 1],
+            "clamp"
+        );
+        return {
+            opacity,
+        };
+    });
+
     return (
         <View
             style={[
@@ -225,18 +343,51 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                 isCompleted && styles.completedContainer,
             ]}
         >
-            <View
-                style={[
-                    styles.mainCard,
-                    hasSubtasks && styles.mainCardWithStack,
-                    {
-                        backgroundColor: colors.card,
-                        shadowColor: mode === "dark" ? "#000000" : COLORS.black,
-                        borderWidth: mode === "dark" ? 0.5 : 0,
-                        borderColor: mode === "dark" ? COLORS.light_gray : "transparent",
-                    },
-                ]}
-            >
+            {/* Фоновые действия при свайпе */}
+            <View style={styles.swipeActionsContainer}>
+                {/* Действие удаления (слева) */}
+                <Animated.View
+                    style={[
+                        styles.swipeAction,
+                        styles.swipeActionLeft,
+                        deleteIconAnimatedStyle,
+                        {
+                            backgroundColor: COLORS.pink,
+                        },
+                    ]}
+                >
+                    <Ionicons name="trash-outline" size={24} color={COLORS.white} />
+                </Animated.View>
+
+                {/* Действие редактирования (справа) */}
+                <Animated.View
+                    style={[
+                        styles.swipeAction,
+                        styles.swipeActionRight,
+                        editIconAnimatedStyle,
+                        {
+                            backgroundColor: COLORS.blue,
+                        },
+                    ]}
+                >
+                    <Ionicons name="create-outline" size={24} color={COLORS.white} />
+                </Animated.View>
+            </View>
+
+            <GestureDetector gesture={panGesture}>
+                <Animated.View
+                    style={[
+                        styles.mainCard,
+                        hasSubtasks && styles.mainCardWithStack,
+                        animatedCardStyle,
+                        {
+                            backgroundColor: colors.card,
+                            shadowColor: mode === "dark" ? "#000000" : COLORS.black,
+                            borderWidth: mode === "dark" ? 0.5 : 0,
+                            borderColor: mode === "dark" ? COLORS.light_gray : "transparent",
+                        },
+                    ]}
+                >
                 <View style={styles.mainRow}>
                     <View style={styles.checkTitleContainer}>
                         <CustomCheckbox checked={isCompleted} onCheck={onPressCheck} />
@@ -314,10 +465,11 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                         </Text>
                     </Pressable>
                 )}
-            </View>
+                </Animated.View>
+            </GestureDetector>
 
             {hasSubtasks && (
-                <Animated.View
+                <RNAnimated.View
                     style={[
                         styles.stackPreviewContainer,
                         {
@@ -349,11 +501,11 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                             },
                         ]}
                     />
-                </Animated.View>
+                </RNAnimated.View>
             )}
 
             {hasSubtasks && (
-                <Animated.View
+                <RNAnimated.View
                     style={[
                         styles.subtasksContainer,
                         {
@@ -414,7 +566,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                                 </View>
                             </View>
                         ))}
-                </Animated.View>
+                </RNAnimated.View>
             )}
 
             <EditTodoModal
@@ -595,6 +747,38 @@ const styles = StyleSheet.create({
         borderRadius: 11,
         alignItems: "center",
         justifyContent: "center",
+    },
+    swipeActionsContainer: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        flexDirection: "row",
+        borderRadius: 15,
+        overflow: "hidden",
+        zIndex: 10,         
+        elevation: 10,       
+        pointerEvents: "none", 
+    },
+    swipeAction: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 4,
+    },
+    swipeActionLeft: {
+        paddingLeft: 20,
+        alignItems: "flex-start",
+    },
+    swipeActionRight: {
+        paddingRight: 20,
+        alignItems: "flex-end",
+    },
+    swipeActionText: {
+        color: COLORS.white,
+        fontSize: 12,
+        fontWeight: "600",
     },
 });
 
