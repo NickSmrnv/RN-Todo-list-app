@@ -1,7 +1,7 @@
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
 import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import React, { ReactNode } from "react";
-import { Modal, StyleSheet, TouchableWithoutFeedback, View } from "react-native";
+import { Modal, StyleSheet, TouchableWithoutFeedback, View, KeyboardAvoidingView, Platform } from "react-native";
 
 interface I_Custom_Modal {
     onClose: () => void;
@@ -18,11 +18,17 @@ export const CustomModal: React.FC<I_Custom_Modal> = ({ isOpen, children, onClos
         <Modal visible={isOpen} onRequestClose={onClose} animationType={animationType} transparent={true}>
             <TouchableWithoutFeedback onPress={onClose}>
                 <View style={[styles.modalBgContainer, isSlide && styles.modalBgContainerSlide, { backgroundColor: colors.overlay }]}>
-                    <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
-                        <View style={[styles.content, isSlide && styles.contentSlide, { backgroundColor: colors.card }]}>
-                            {children}
-                        </View>
-                    </TouchableWithoutFeedback>
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === "ios" ? "padding" : "height"} // iOS — padding, Android — height
+                        style={{ width: "100%", alignItems: "center" }}
+                        keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0} // сдвиг сверху, можно подкорректировать
+                    >
+                        <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+                            <View style={[styles.content, isSlide && styles.contentSlide, { backgroundColor: colors.card }]}>
+                                {children}
+                            </View>
+                        </TouchableWithoutFeedback>
+                    </KeyboardAvoidingView>
                 </View>
             </TouchableWithoutFeedback>
         </Modal>  
@@ -54,4 +60,4 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 0,
         paddingBottom: 40,
     }
-})
+});

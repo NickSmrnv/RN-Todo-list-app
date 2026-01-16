@@ -62,7 +62,7 @@ export const AddTodoModal: React.FC<I_Add_Todo_Modal> = ({
     }, [isOpen]);
 
     return (
-        <CustomModal isOpen={isOpen} onClose={onClose} animationType="slide">
+        <CustomModal isOpen={isOpen} onClose={onClose} animationType="fade">
             <View style={styles.modalContent}>
                 <CustomText variant={"title"}>{titleText}</CustomText>
 

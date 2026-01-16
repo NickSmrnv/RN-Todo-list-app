@@ -1,7 +1,7 @@
 import { ThemeProvider } from "@/src/shared/lib/context/ThemeContext";
-import { configureNotifications, scheduleDailyMotivationReminder } from "@/src/shared/lib/notifications/reminders";
+// import { configureNotifications, scheduleDailyMotivationReminder } from "@/src/shared/lib/notifications/reminders";
 import { createStackNavigator, StackCardStyleInterpolator } from "@react-navigation/stack";
-import * as Notifications from "expo-notifications";
+// import * as Notifications from "expo-notifications";
 import { withLayoutContext } from "expo-router";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -15,21 +15,21 @@ const CustomStack = withLayoutContext(Navigator);
 
 const persister = persistStore(store)
 
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-        shouldShowBanner: true,
-        shouldShowList: true,
-    }),
-});
+// Notifications.setNotificationHandler({
+//     handleNotification: async () => ({
+//         shouldShowAlert: true,
+//         shouldPlaySound: true,
+//         shouldSetBadge: false,
+//         shouldShowBanner: true,
+//         shouldShowList: true,
+//     }),
+// });
 
 export default function RootLayout() {
-    useEffect(() => {
-        configureNotifications();
-        scheduleDailyMotivationReminder();
-    }, []);
+    // useEffect(() => {
+    //     configureNotifications();
+    //     scheduleDailyMotivationReminder();
+    // }, []);
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>

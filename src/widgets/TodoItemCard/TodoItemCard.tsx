@@ -315,7 +315,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
         const opacity = interpolate(
             translateX.value,
             [-75, -SWIPE_THRESHOLD, 0],
-            [1, 0.7, 0],
+            [1, 1, 0],
             "clamp"
         );
         return {
@@ -327,7 +327,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
         const opacity = interpolate(
             translateX.value,
             [0, SWIPE_THRESHOLD, 75],
-            [0, 0.7, 1],
+            [0, 1, 1],
             "clamp"
         );
         return {
@@ -345,11 +345,25 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
         >
             {/* Фоновые действия при свайпе */}
             <View style={styles.swipeActionsContainer}>
-                {/* Действие удаления (слева) */}
+                {/* Действие редактирования (слева) */}
                 <Animated.View
                     style={[
                         styles.swipeAction,
                         styles.swipeActionLeft,
+                        editIconAnimatedStyle,
+                        {
+                            backgroundColor: COLORS.green,
+                        },
+                    ]}
+                >
+                    <Ionicons name="create-outline" size={24} color={COLORS.white} />
+                </Animated.View>
+
+                {/* Действие удаления (справа) */}
+                <Animated.View
+                    style={[
+                        styles.swipeAction,
+                        styles.swipeActionRight,
                         deleteIconAnimatedStyle,
                         {
                             backgroundColor: COLORS.pink,
@@ -359,19 +373,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                     <Ionicons name="trash-outline" size={24} color={COLORS.white} />
                 </Animated.View>
 
-                {/* Действие редактирования (справа) */}
-                <Animated.View
-                    style={[
-                        styles.swipeAction,
-                        styles.swipeActionRight,
-                        editIconAnimatedStyle,
-                        {
-                            backgroundColor: COLORS.blue,
-                        },
-                    ]}
-                >
-                    <Ionicons name="create-outline" size={24} color={COLORS.white} />
-                </Animated.View>
+                
             </View>
 
             <GestureDetector gesture={panGesture}>
@@ -757,7 +759,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         borderRadius: 15,
         overflow: "hidden",
-        zIndex: 10,         
+        zIndex: 1,         
         elevation: 10,       
         pointerEvents: "none", 
     },

@@ -1,4 +1,5 @@
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import { TodoPriority } from "@/src/shared/model/types/todo";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -27,6 +28,8 @@ export const PrioritySelector: React.FC<I_Priority_Selector> = ({
     selectedPriority,
     onPriorityChange,
 }) => {
+    const { colors, mode } = useTheme();
+
     return (
         <View style={styles.container}>
             {priorities.map((priority) => {
@@ -40,6 +43,7 @@ export const PrioritySelector: React.FC<I_Priority_Selector> = ({
                             styles.priorityButton,
                             { backgroundColor },
                             isSelected && styles.selectedButton,
+                            { borderColor: mode === "dark" && isSelected ? colors.text : COLORS.black },
                         ]}
                         onPress={() => onPriorityChange(priority)}
                         activeOpacity={0.7}
@@ -47,7 +51,6 @@ export const PrioritySelector: React.FC<I_Priority_Selector> = ({
                         <Text
                             style={[
                                 styles.priorityText,
-                                isSelected && styles.selectedText,
                             ]}
                         >
                             {priority}
@@ -70,12 +73,11 @@ const styles = StyleSheet.create({
         borderRadius: 7,
         alignItems: "center",
         justifyContent: "center",
-        borderWidth: 2,
         borderColor: "transparent",
         minHeight: 10,
+        boxSizing: "content-box",
     },
     selectedButton: {
-        borderColor: COLORS.black,
         borderWidth: 1,
         shadowColor: COLORS.black,
         shadowOffset: {
@@ -84,17 +86,11 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
-        elevation: 5,
-        transform: [{ scale: 1.05 }],
     },
     priorityText: {
         color: COLORS.white,
         fontSize: 12,
         fontWeight: "600",
-    },
-    selectedText: {
-        fontWeight: "700",
-        fontSize: 13,
     },
 });
 

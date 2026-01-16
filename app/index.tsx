@@ -2,7 +2,7 @@ import { AddTodoModal } from "@/src/features/modals/AddTodoModal/AddTodoModal";
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
 import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import useTodo from "@/src/shared/lib/hooks/useTodo";
-import { refreshIncompleteTodosReminder } from "@/src/shared/lib/notifications/reminders";
+// import { refreshIncompleteTodosReminder } from "@/src/shared/lib/notifications/reminders";
 import { getTodayDate } from "@/src/shared/lib/obj/date";
 import { TodoPriority } from "@/src/shared/model/types/todo";
 import { Header } from "@/src/shared/ui/atom/Header/Header";
@@ -38,9 +38,9 @@ export default function Index() {
     const filteredTodos = getTodosByDate(selectedDate);
     const filteredCompletedTodos = filteredTodos.filter((todo) => todo.isCompleted);
 
-    useEffect(() => {
-        refreshIncompleteTodosReminder(todos);
-    }, [todos]);
+    // useEffect(() => {
+    //     refreshIncompleteTodosReminder(todos);
+    // }, [todos]);
 
     const handleRefresh = async () => {
         setRefreshing(true);
