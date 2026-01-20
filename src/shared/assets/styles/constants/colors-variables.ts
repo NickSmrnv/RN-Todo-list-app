@@ -13,4 +13,7 @@ export const COLORS = {
     purple: "#9645BC",
     dark_green: "#30C671",
     light_gray: "#F5F5F5",
+
+    //dark
+    rich_black: "#020617",
 }

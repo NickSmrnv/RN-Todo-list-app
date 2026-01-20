@@ -12,16 +12,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     LayoutAnimation,
+    Modal,
     Pressable,
     Animated as RNAnimated,
     StyleSheet,
     Text,
+    TextInput,
+    TouchableOpacity,
     UIManager,
     Vibration,
     View,
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+    cancelAnimation,
     interpolate,
     runOnJS,
     useAnimatedStyle,
@@ -83,6 +87,19 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
         height: number;
     } | undefined>(undefined);
     const buttonRef = useRef<View>(null);
+    
+    // Состояния для inline редактирования
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [editedTitle, setEditedTitle] = useState(title);
+    const [isPriorityMenuOpen, setIsPriorityMenuOpen] = useState(false);
+    const [priorityAnchorPosition, setPriorityAnchorPosition] = useState<{
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    } | undefined>(undefined);
+    const titleInputRef = useRef<TextInput>(null);
+    const priorityButtonRef = useRef<View>(null);
 
     // Анимация для свайпа
     const translateX = useSharedValue(0);
@@ -120,6 +137,15 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
         })();
     }, [id, hasSubtasks]);
 
+    // Сбрасываем translateX при начале и при окончании перетаскивания
+    useEffect(() => {
+        cancelAnimation(translateX);
+        translateX.value = withSpring(0, {
+            damping: 100,
+            stiffness: 400,
+        });
+    }, [isDragging, translateX]);
+
     // Сохраняем состояние разворота для текущей задачи
     const persistExpandedState = async (next: boolean) => {
         try {
@@ -138,6 +164,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
 
     const handleToggleExpand = () => {
         if (!subtasks || subtasks.length === 0) return;
+        if (isEditingTitle) return; // Не сворачиваем/разворачиваем при редактировании
 
         // Настройка LayoutAnimation для плавной анимации высоты
         if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -161,6 +188,60 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
             void persistExpandedState(next);
             return next;
         });
+    };
+
+    // Inline редактирование названия
+    const handleTitlePress = () => {
+        setIsEditingTitle(true);
+        setEditedTitle(title);
+        // Фокусируем input после небольшой задержки
+        setTimeout(() => {
+            titleInputRef.current?.focus();
+        }, 100);
+    };
+
+    const handleTitleBlur = () => {
+        setIsEditingTitle(false);
+        if (editedTitle.trim() && editedTitle !== title) {
+            onUpdate(id, editedTitle.trim(), priority);
+        } else {
+            setEditedTitle(title);
+        }
+    };
+
+    const handleTitleSubmit = () => {
+        if (editedTitle.trim()) {
+            onUpdate(id, editedTitle.trim(), priority);
+        }
+        setIsEditingTitle(false);
+    };
+
+    // Редактирование приоритета
+    const handlePriorityPress = () => {
+        // Закрываем основное меню, если открыто
+        setIsMenuOpen(false);
+
+        priorityButtonRef.current?.measureInWindow((x, y, width, height) => {
+            setPriorityAnchorPosition({ x, y, width, height });
+            setIsPriorityMenuOpen(true);
+        });
+    };
+
+    const handlePrioritySelect = (newPriority: TodoPriority) => {
+        onUpdate(id, title, newPriority);
+        setIsPriorityMenuOpen(false);
+        setPriorityAnchorPosition(undefined);
+    };
+
+    const handleOutsidePress = () => {
+        if (isEditingTitle) {
+            titleInputRef.current?.blur();
+        }
+    };
+
+    const closePriorityMenu = () => {
+        setIsPriorityMenuOpen(false);
+        setPriorityAnchorPosition(undefined);
     };
 
     // Анимация раскрытия/закрытия stackCard и подзадач
@@ -203,6 +284,9 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
             setIsMenuOpen(false);
             return;
         }
+        // Закрываем меню приоритета, если открыто
+        setIsPriorityMenuOpen(false);
+        
         buttonRef.current?.measureInWindow((x, y, width, height) => {
             setAnchorPosition({
                 x,
@@ -255,11 +339,12 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
     const panGesture = useMemo(
         () =>
             Gesture.Pan()
-                .activeOffsetX([-5, 5]) // Активируется только при горизонтальном движении
-                .failOffsetY([-5, 5]) // Не активируется при вертикальном движении
-                .enabled(!isDragging) // Отключаем при перетаскивании
+                .activeOffsetX([-15, 15]) // Увеличен порог для активации, чтобы не мешать кликам
+                .failOffsetY([-10, 10]) // Не активируется при вертикальном движении
+                .enabled(!isDragging && !isEditingTitle && !isPriorityMenuOpen) // Отключаем при перетаскивании, редактировании или открытом меню
                 .minPointers(1)
                 .maxPointers(1)
+                .shouldCancelWhenOutside(false)
                 .onChange((event) => {
                     "worklet";
                     // Ограничиваем свайп только по горизонтали
@@ -300,7 +385,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                         });
                     }
                 }),
-        [isDragging, openDeleteModal, openEditModal]
+        [isDragging, isEditingTitle, isPriorityMenuOpen, openDeleteModal, openEditModal]
     );
 
     // Анимированные стили для карточки
@@ -383,39 +468,91 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                         hasSubtasks && styles.mainCardWithStack,
                         animatedCardStyle,
                         {
-                            backgroundColor: colors.card,
+                            backgroundColor: isEditingTitle
+                                ? mode === "dark"
+                                    ? "#0B1220"
+                                    : COLORS.light_gray
+                                : colors.card,
                             shadowColor: mode === "dark" ? "#000000" : COLORS.black,
                             borderWidth: mode === "dark" ? 0.5 : 0,
                             borderColor: mode === "dark" ? COLORS.light_gray : "transparent",
                         },
                     ]}
+                    onStartShouldSetResponderCapture={() => {
+                        handleOutsidePress();
+                        return false;
+                    }}
                 >
-                <View style={styles.mainRow}>
+                {/* Фоновая зона для long-press drag по отступам и пустотам */}
+                <Pressable
+                    style={({ pressed }) => [styles.dragAreaBackdrop, pressed && { opacity: 1 }]}
+                    onLongPress={onLongPress}
+                    android_ripple={null}
+                />
+                <Pressable
+                    style={({ pressed }) => [styles.mainRow, pressed && { opacity: 1 }]}
+                    onLongPress={onLongPress}
+                    android_ripple={null}
+                >
                     <View style={styles.checkTitleContainer}>
-                        <CustomCheckbox checked={isCompleted} onCheck={onPressCheck} />
-                        <Pressable
-                            style={styles.titleContainer}
-                            onPress={handleToggleExpand}
+                        <CustomCheckbox
+                            checked={isCompleted}
+                            onCheck={onPressCheck}
                             onLongPress={onLongPress}
-                        >
-                            <Text
-                                style={{
-                                    flexShrink: 1,
-                                    color: colors.text,
-                                    textDecorationLine: isCompleted ? "line-through" : "none",
-                                }}
-                            >
-                                {title}
-                            </Text>
-                        </Pressable>
-                        {priority && (
-                            <View
+                        />
+                        {isEditingTitle ? (
+                            <TextInput
+                                ref={titleInputRef}
+                                value={editedTitle}
+                                onChangeText={setEditedTitle}
+                                onBlur={handleTitleBlur}
+                                onSubmitEditing={handleTitleSubmit}
                                 style={[
-                                    styles.priorityTag,
-                                    { backgroundColor: getPriorityColor(priority) },
+                                    styles.titleInput,
+                                    {
+                                        color: colors.text,
+                                    },
                                 ]}
+                                placeholder="Введите название задачи"
+                                placeholderTextColor={colors.text + "80"}
+                                returnKeyType="done"
+                                blurOnSubmit={true}
+                                selectTextOnFocus={true}
+                            />
+                        ) : (
+                            <Pressable
+                                style={styles.titleContainer}
+                                onPress={handleTitlePress}
+                                onLongPress={onLongPress}
                             >
-                                <Text style={styles.priorityTagText}>{priority}</Text>
+                                <Text
+                                    style={{
+                                        flexShrink: 1,
+                                        color: colors.text,
+                                        textDecorationLine: isCompleted ? "line-through" : "none",
+                                    }}
+                                >
+                                    {title}
+                                </Text>
+                            </Pressable>
+                        )}
+                        {priority && (
+                            <View ref={priorityButtonRef} collapsable={false}>
+                                <TouchableOpacity
+                                    onPress={handlePriorityPress}
+                                    onLongPress={onLongPress}
+                                    activeOpacity={0.7}
+                                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                >
+                                    <View
+                                        style={[
+                                            styles.priorityTag,
+                                            { backgroundColor: getPriorityColor(priority) },
+                                        ]}
+                                    >
+                                        <Text style={styles.priorityTagText}>{priority}</Text>
+                                    </View>
+                                </TouchableOpacity>
                             </View>
                         )}
                     </View>
@@ -427,6 +564,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                                 size="small"
                                 iconSize={16}
                                 onPress={handleMenuButtonPress}
+                                onLongPress={onLongPress}
                                 style={isMenuOpen ? styles.menuButtonActive : styles.menuButton}
                             />
                         </View>
@@ -441,11 +579,12 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                             />
                         )}
                     </View>
-                </View>
+                </Pressable>
 
                 {hasSubtasks && (
                     <Pressable
                         onPress={handleToggleExpand}
+                        onLongPress={onLongPress}
                         style={[
                             styles.subtasksBadge,
                             styles.subtasksBadgeFloating,
@@ -593,6 +732,68 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                 submitText="Добавить"
                 withPriority={false}
             />
+
+            {/* Меню выбора приоритета */}
+            <Modal
+                visible={isPriorityMenuOpen}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={closePriorityMenu}
+            >
+                <Pressable
+                    style={styles.modalBackdrop}
+                    onPress={closePriorityMenu}
+                >
+                    {priorityAnchorPosition && (
+                        <View
+                            style={[
+                                styles.priorityMenu,
+                                {
+                                    backgroundColor: colors.card,
+                                    borderColor: colors.primary,
+                                    shadowColor: mode === "dark" ? "#000000" : COLORS.black,
+                                    top: priorityAnchorPosition.y + priorityAnchorPosition.height + 5,
+                                    left: priorityAnchorPosition.x,
+                                },
+                            ]}
+                        >
+                            {(["Низкий", "Средний", "Высокий"] as TodoPriority[]).map(
+                                (priorityOption) => (
+                                    <TouchableOpacity
+                                        key={priorityOption}
+                                        onPress={() => handlePrioritySelect(priorityOption)}
+                                        style={[
+                                            styles.priorityMenuItem,
+                                            priority === priorityOption && {
+                                                backgroundColor: colors.primary + "20",
+                                            },
+                                        ]}
+                                        activeOpacity={0.7}
+                                    >
+                                        <View
+                                            style={[
+                                                styles.priorityDot,
+                                                {
+                                                    backgroundColor:
+                                                        getPriorityColor(priorityOption),
+                                                },
+                                            ]}
+                                        />
+                                        <Text
+                                            style={[
+                                                styles.priorityMenuItemText,
+                                                { color: colors.text },
+                                            ]}
+                                        >
+                                            {priorityOption}
+                                        </Text>
+                                    </TouchableOpacity>
+                                )
+                            )}
+                        </View>
+                    )}
+                </Pressable>
+            </Modal>
         </View>
     );
 };
@@ -600,7 +801,6 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
 const styles = StyleSheet.create({
     container: {
         paddingHorizontal: 0,
-        marginVertical: 6,
     },
     completedContainer: {
         opacity: 0.8,
@@ -623,6 +823,9 @@ const styles = StyleSheet.create({
     mainCardWithStack: {
         marginBottom: 8,
     },
+    dragAreaBackdrop: {
+        ...StyleSheet.absoluteFillObject,
+    },
     mainRow: {
         flexDirection: "row",
         alignItems: "center",
@@ -637,14 +840,19 @@ const styles = StyleSheet.create({
     titleContainer: {
         flex: 1,
     },
+    titleInput: {
+        flex: 1,
+        fontSize: 14,
+        paddingVertical: 4,
+        minHeight: 32,
+    },
     controlContainer: {
         flexDirection: "row",
         gap: 5,
         position: "relative",
     },
     draggingContainer: {
-        opacity: 0.5,
-        transform: [{ scale: 1.05 }],
+        opacity: 0.85,
     },
     priorityTag: {
         paddingHorizontal: 8,
@@ -781,6 +989,39 @@ const styles = StyleSheet.create({
         color: COLORS.white,
         fontSize: 12,
         fontWeight: "600",
+    },
+    priorityMenu: {
+        position: "absolute",
+        borderRadius: 12,
+        borderWidth: 1,
+        padding: 8,
+        zIndex: 10000,
+        minWidth: 140,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 10,
+    },
+    priorityMenuItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+    },
+    priorityMenuItemText: {
+        fontSize: 15,
+        fontWeight: "500",
+    },
+    priorityDot: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+    },
+    modalBackdrop: {
+        flex: 1,
+        backgroundColor: "transparent",
     },
 });
 

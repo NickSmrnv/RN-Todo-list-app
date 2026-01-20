@@ -18,6 +18,7 @@ interface I_Custom_Button {
     variant?: "primary" | "secondary" | "delete";
     disabled?: boolean;
     onPress?: () => void;
+    onLongPress?: () => void;
     style?: ViewStyle;
 }
 
@@ -30,6 +31,7 @@ export const CustomButton: React.FC<I_Custom_Button> = ({
     variant = "primary",
     disabled = false,
     onPress,
+    onLongPress,
     style,
 }) => {
     const { colors, mode } = useTheme();
@@ -54,6 +56,7 @@ export const CustomButton: React.FC<I_Custom_Button> = ({
             ]}
             disabled={disabled}
             onPress={onPress}
+            onLongPress={onLongPress}
         >
             {label && <Text style={styles.text}>{label}</Text>}
             {icon && (

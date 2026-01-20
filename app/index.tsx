@@ -9,8 +9,15 @@ import { Header } from "@/src/shared/ui/atom/Header/Header";
 import { CustomButton } from "@/src/shared/ui/atom/_Custom/CustomButton/CustomButton";
 import { DateSlider } from "@/src/widgets/DateSlider/DateSlider";
 import { TodoListWidget } from "@/src/widgets/TodoListWidget/TodoListWidget";
-import { useEffect, useState } from "react";
-import { RefreshControl, ScrollView, StatusBar, StyleSheet, View } from "react-native";
+import React, { useState } from "react";
+import {
+    Keyboard,
+    RefreshControl,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Index() {
@@ -48,16 +55,28 @@ export default function Index() {
         setRefreshing(false);
     };
 
-    const handleAddTodo = (title: string, priority: TodoPriority) => {
+    const handleAddTodo = (
+        title: string,
+        priority: TodoPriority = "Средний"
+    ) => {
         onAddTodo(title, selectedDate, priority);
     };
+    
 
     const handleDateChange = (date: Date) => {
         setSelectedDate(date);
     };
 
     return (
-        <View style={[style.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
+        <View
+            style={[
+                style.container,
+                { paddingTop: insets.top, backgroundColor: colors.background },
+            ]}
+            onTouchStart={() => {
+                Keyboard.dismiss();
+            }}
+        >
             <StatusBar
                 barStyle={mode === "dark" ? "light-content" : "dark-content"}
                 backgroundColor={colors.background}
@@ -65,6 +84,7 @@ export default function Index() {
             <ScrollView
                 style={style.scrollView}
                 contentContainerStyle={style.scrollContent}
+                keyboardShouldPersistTaps="handled"
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
@@ -82,14 +102,15 @@ export default function Index() {
                 </View>
                 <View style={[style.content, { backgroundColor: mode === "dark" ? colors.card : COLORS.blue }]}>
                     <TodoListWidget 
-                        todos={filteredTodos} 
-                        onCheckTodo={onCheckTodo} 
-                        onDeleteTodo={onDeleteTodo} 
+                        todos={filteredTodos}
+                        onCheckTodo={onCheckTodo}
+                        onDeleteTodo={onDeleteTodo}
                         onAddSubtask={onAddSubtask}
                         onCheckSubtask={onCheckSubtask}
                         onDeleteSubtask={onDeleteSubtask}
                         onUpdateTodo={onUpdateTodoTitle}
-                        onReorderTodos={onReorderTodos}
+                        onReorderTodos={onReorderTodos} 
+                        onAddTodo={handleAddTodo}
                     />
                 </View>
             </ScrollView>
