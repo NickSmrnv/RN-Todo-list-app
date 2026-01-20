@@ -37,6 +37,12 @@ interface I_Todo_List {
         parentId: I_Todo["id"],
         subtaskId: I_Todo["id"]
     ) => void;
+    onUpdateSubtask: (
+        parentId: I_Todo["id"],
+        subtaskId: I_Todo["id"],
+        title: I_Todo["title"],
+        priority?: TodoPriority
+    ) => void;
 }
 
 export const TodoListWidget: React.FC<I_Todo_List> = ({
@@ -49,6 +55,7 @@ export const TodoListWidget: React.FC<I_Todo_List> = ({
     onAddSubtask,
     onCheckSubtask,
     onDeleteSubtask,
+    onUpdateSubtask,
 }) => {
     const renderItem = ({
         item,
@@ -70,6 +77,7 @@ export const TodoListWidget: React.FC<I_Todo_List> = ({
                         onAddSubtask={onAddSubtask}
                         onCheckSubtask={onCheckSubtask}
                         onDeleteSubtask={onDeleteSubtask}
+                        onUpdateSubtask={onUpdateSubtask}
                         onLongPress={drag}
                         isDragging={isActive}
                     />

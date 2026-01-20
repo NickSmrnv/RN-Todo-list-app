@@ -109,6 +109,30 @@ export const todoSlice = createSlice({
             );
         },
 
+        updateSubtask: (
+            state: I_Todo_State,
+            action: PayloadAction<{
+                parentId: number;
+                subtaskId: number;
+                title?: string;
+                priority?: I_Todo["priority"];
+            }>
+        ) => {
+            const { parentId, subtaskId, title, priority } = action.payload;
+            const parentTodo = state.todos.find((todo) => todo.id === parentId);
+            if (!parentTodo || !parentTodo.subtasks) return;
+
+            parentTodo.subtasks = parentTodo.subtasks.map((subtask) =>
+                subtask.id === subtaskId
+                    ? {
+                          ...subtask,
+                          ...(title !== undefined && { title }),
+                          ...(priority !== undefined && { priority }),
+                      }
+                    : subtask
+            );
+        },
+
         updateTodo: (
             state: I_Todo_State,
             action: PayloadAction<{ id: number; title?: string; priority?: I_Todo["priority"] }>
@@ -147,6 +171,7 @@ export const {
     addSubtask,
     toggleSubtask,
     removeSubtask,
+    updateSubtask,
 } = todoSlice.actions;
 
 export const selectTodos = (state: { todo: I_Todo_State }): I_Todo_State["todos"] => state.todo.todos

@@ -1,5 +1,6 @@
 import { AddTodoModal } from "@/src/features/modals/AddTodoModal/AddTodoModal";
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { KeyboardScrollContext } from "@/src/shared/lib/context/KeyboardScrollContext";
 import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import useTodo from "@/src/shared/lib/hooks/useTodo";
 // import { refreshIncompleteTodosReminder } from "@/src/shared/lib/notifications/reminders";
@@ -9,9 +10,12 @@ import { Header } from "@/src/shared/ui/atom/Header/Header";
 import { CustomButton } from "@/src/shared/ui/atom/_Custom/CustomButton/CustomButton";
 import { DateSlider } from "@/src/widgets/DateSlider/DateSlider";
 import { TodoListWidget } from "@/src/widgets/TodoListWidget/TodoListWidget";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+    Dimensions,
     Keyboard,
+    KeyboardAvoidingView,
+    Platform,
     RefreshControl,
     ScrollView,
     StatusBar,
@@ -20,12 +24,38 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+const DEFAULT_KEYBOARD_HEIGHT = 300;
+const INPUT_PADDING_ABOVE_KEYBOARD = 24;
+
 export default function Index() {
     const insets = useSafeAreaInsets();
     const { colors, mode } = useTheme();
     const [refreshing, setRefreshing] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(getTodayDate());
+
+    const scrollViewRef = useRef<ScrollView>(null);
+    const scrollYRef = useRef(0);
+    const keyboardHeightRef = useRef(DEFAULT_KEYBOARD_HEIGHT);
+
+    useEffect(() => {
+        const sub = Keyboard.addListener("keyboardDidShow", (e) => {
+            keyboardHeightRef.current = e.endCoordinates.height;
+        });
+        return () => sub.remove();
+    }, []);
+
+    const scrollToShowInput = useCallback((layout: { y: number; height: number }) => {
+        const windowHeight = Dimensions.get("window").height;
+        const keyboardHeight = keyboardHeightRef.current;
+        const visibleBottom = windowHeight - keyboardHeight - INPUT_PADDING_ABOVE_KEYBOARD;
+        if (layout.y + layout.height <= visibleBottom) return;
+        const scrollDelta = layout.y + layout.height - visibleBottom;
+        const newY = Math.max(0, scrollYRef.current + scrollDelta);
+        setTimeout(() => {
+            scrollViewRef.current?.scrollTo({ y: newY, animated: true });
+        }, 50);
+    }, []);
 
     const {
         todos,
@@ -36,6 +66,7 @@ export default function Index() {
         onAddSubtask,
         onCheckSubtask,
         onDeleteSubtask,
+        onUpdateSubtask,
         onUpdateTodoTitle,
         onReorderTodos,
         onRefresh,
@@ -81,17 +112,28 @@ export default function Index() {
                 barStyle={mode === "dark" ? "light-content" : "dark-content"}
                 backgroundColor={colors.background}
             />
-            <ScrollView
-                style={style.scrollView}
-                contentContainerStyle={style.scrollContent}
-                keyboardShouldPersistTaps="handled"
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={handleRefresh}
-                    />
-                }
-            >
+            <KeyboardScrollContext.Provider value={{ scrollToShowInput }}>
+                <KeyboardAvoidingView
+                    style={style.keyboardAvoid}
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+                >
+                    <ScrollView
+                        ref={scrollViewRef}
+                        style={style.scrollView}
+                        contentContainerStyle={style.scrollContent}
+                        keyboardShouldPersistTaps="handled"
+                        onScroll={(e) => {
+                            scrollYRef.current = e.nativeEvent.contentOffset.y;
+                        }}
+                        scrollEventThrottle={16}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={handleRefresh}
+                            />
+                        }
+                    >
                 <Header
                     totalTodos={filteredTodos.length}
                     completedTodos={filteredCompletedTodos.length}
@@ -108,12 +150,15 @@ export default function Index() {
                         onAddSubtask={onAddSubtask}
                         onCheckSubtask={onCheckSubtask}
                         onDeleteSubtask={onDeleteSubtask}
+                        onUpdateSubtask={onUpdateSubtask}
                         onUpdateTodo={onUpdateTodoTitle}
                         onReorderTodos={onReorderTodos} 
                         onAddTodo={handleAddTodo}
                     />
                 </View>
-            </ScrollView>
+                    </ScrollView>
+                </KeyboardAvoidingView>
+            </KeyboardScrollContext.Provider>
             <View style={[style.fabContainer, { bottom: insets.bottom + 20 }]}>
                 <CustomButton
                     icon="add"
@@ -140,6 +185,10 @@ const style = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: "center",
+    },
+    keyboardAvoid: {
+        flex: 1,
+        width: "100%",
     },
     scrollView: {
         flex: 1,

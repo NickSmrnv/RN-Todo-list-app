@@ -41,6 +41,7 @@ interface MainCardContentProps {
     onTitlePress: () => void;
     onTitleBlur: () => void;
     onTitleSubmit: () => void;
+    onTitleInputFocus?: () => void;
     onEditedTitleChange: (value: string) => void;
     onOutsidePress: () => void;
     onToggleExpand: () => void;
@@ -71,6 +72,7 @@ export const MainCardContent: React.FC<MainCardContentProps> = ({
     onTitlePress,
     onTitleBlur,
     onTitleSubmit,
+    onTitleInputFocus,
     onEditedTitleChange,
     onOutsidePress,
     onToggleExpand,
@@ -136,6 +138,7 @@ export const MainCardContent: React.FC<MainCardContentProps> = ({
                             value={editedTitle}
                             onChangeText={onEditedTitleChange}
                             onBlur={onTitleBlur}
+                            onFocus={onTitleInputFocus}
                             onSubmitEditing={onTitleSubmit}
                             style={[
                                 styles.titleInput,

@@ -1,8 +1,10 @@
 import { TodoItemMenu } from "@/src/features/menus/TodoItemMenu/TodoItemMenu";
 import { AddTodoModal } from "@/src/features/modals/AddTodoModal/AddTodoModal";
+import { DeleteSubtaskModal } from "@/src/features/modals/DeleteSubtaskModal/DeleteSubtaskModal";
 import { DeleteTodoModal } from "@/src/features/modals/DeleteTodoModal/DeleteTodoModal";
 import { EditTodoModal } from "@/src/features/modals/EditTodoModal/EditTodoModal";
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { useKeyboardScroll } from "@/src/shared/lib/context/KeyboardScrollContext";
 import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import {
     persistSubtasksExpandedState,
@@ -40,6 +42,7 @@ interface I_Todo_Item extends I_Todo {
     onAddSubtask: (parentId: I_Todo["id"], title: I_Todo["title"], priority?: TodoPriority) => void;
     onCheckSubtask: (parentId: I_Todo["id"], subtaskId: I_Todo["id"]) => void;
     onDeleteSubtask: (parentId: I_Todo["id"], subtaskId: I_Todo["id"]) => void;
+    onUpdateSubtask: (parentId: I_Todo["id"], subtaskId: I_Todo["id"], title: I_Todo["title"], priority?: TodoPriority) => void;
     onLongPress?: () => void;
     isDragging?: boolean;
 }
@@ -56,14 +59,18 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
     onAddSubtask,
     onCheckSubtask,
     onDeleteSubtask,
+    onUpdateSubtask,
     onLongPress,
     isDragging = false,
 }) => {
     const { colors, mode } = useTheme();
+    const scrollToShowInput = useKeyboardScroll()?.scrollToShowInput;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isAddSubtaskModalOpen, setIsAddSubtaskModalOpen] = useState(false);
+    const [subtaskToEdit, setSubtaskToEdit] = useState<I_Todo | null>(null);
+    const [subtaskToDelete, setSubtaskToDelete] = useState<I_Todo | null>(null);
     // По умолчанию подзадачи раскрыты; фактическое состояние подгружаем из AsyncStorage
     const [isExpanded, setIsExpanded] = useState(true);
     const [anchorPosition, setAnchorPosition] = useState<{
@@ -73,7 +80,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
         height: number;
     } | undefined>(undefined);
     const buttonRef = useRef<View>(null);
-    
+
     // Состояния для inline редактирования
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [editedTitle, setEditedTitle] = useState(title);
@@ -171,6 +178,14 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
         }
     };
 
+    const handleTitleInputFocus = () => {
+        setTimeout(() => {
+            titleInputRef.current?.measureInWindow((_x, y, _w, h) => {
+                scrollToShowInput?.({ y, height: h });
+            });
+        }, 400);
+    };
+
     const handleTitleSubmit = () => {
         if (editedTitle.trim()) {
             onUpdate(id, editedTitle.trim(), priority);
@@ -248,7 +263,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
         }
         // Закрываем меню приоритета, если открыто
         setIsPriorityMenuOpen(false);
-        
+
         buttonRef.current?.measureInWindow((x, y, width, height) => {
             setAnchorPosition({
                 x,
@@ -271,8 +286,27 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
         onCheckSubtask(id, subtaskId);
     };
 
-    const handleDeleteSubtask = (subtaskId: I_Todo["id"]) => {
-        onDeleteSubtask(id, subtaskId);
+    const handleRequestEditSubtask = (subtask: I_Todo) => {
+        setSubtaskToEdit(subtask);
+    };
+
+    const handleRequestDeleteSubtask = (subtask: I_Todo) => {
+        setSubtaskToDelete(subtask);
+    };
+
+    const handleConfirmEditSubtask = (nextTitle: I_Todo["title"], nextPriority?: TodoPriority) => {
+        if (subtaskToEdit) {
+            onUpdateSubtask(id, subtaskToEdit.id, nextTitle, nextPriority);
+            setSubtaskToEdit(null);
+        }
+    };
+
+    const handleConfirmDeleteSubtask = () => {
+        if (subtaskToDelete) {
+            onDeleteSubtask(id, subtaskToDelete.id);
+            setSubtaskToDelete(null);
+            Vibration.vibrate(300);
+        }
     };
 
     // Флаг для отслеживания монтирования компонента
@@ -301,7 +335,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
     const panGesture = useMemo(
         () =>
             Gesture.Pan()
-                .activeOffsetX([-15, 15]) // Увеличен порог для активации, чтобы не мешать кликам
+                .activeOffsetX([-10, 10])
                 .failOffsetY([-10, 10]) // Не активируется при вертикальном движении
                 .enabled(!isDragging && !isEditingTitle && !isPriorityMenuOpen) // Отключаем при перетаскивании, редактировании или открытом меню
                 .minPointers(1)
@@ -420,6 +454,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                     onTitlePress={handleTitlePress}
                     onTitleBlur={handleTitleBlur}
                     onTitleSubmit={handleTitleSubmit}
+                    onTitleInputFocus={handleTitleInputFocus}
                     onEditedTitleChange={setEditedTitle}
                     onOutsidePress={handleOutsidePress}
                     onToggleExpand={handleToggleExpand}
@@ -487,7 +522,11 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                 colors={colors}
                 mode={mode}
                 onCheckSubtask={handleCheckSubtask}
-                onDeleteSubtask={handleDeleteSubtask}
+                onRequestEditSubtask={handleRequestEditSubtask}
+                onRequestDeleteSubtask={handleRequestDeleteSubtask}
+                onUpdateSubtaskTitle={(subtaskId, newTitle) =>
+                    onUpdateSubtask(id, subtaskId, newTitle)
+                }
             />
 
             <EditTodoModal
@@ -511,6 +550,12 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                 titleText="Добавить подзадачу"
                 submitText="Добавить"
                 withPriority={false}
+            />
+
+            <DeleteSubtaskModal
+                isOpen={subtaskToDelete !== null}
+                onClose={() => setSubtaskToDelete(null)}
+                onDelete={handleConfirmDeleteSubtask}
             />
 
             <PriorityMenuModal

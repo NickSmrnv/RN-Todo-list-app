@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from "@/store";
-import { addSubtask, addTodo, refreshTodos, removeSubtask, removeTodo, reorderTodos, selectTodos, toggleSubtask, toggleTodo, updateTodo } from "@/store/slices/todoSlice";
+import { addSubtask, addTodo, refreshTodos, removeSubtask, removeTodo, reorderTodos, selectTodos, toggleSubtask, toggleTodo, updateSubtask, updateTodo } from "@/store/slices/todoSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { I_Todo, TodoPriority } from "../../model/types/todo";
 import { getTodayDate, isSameDate } from "../obj/date";
@@ -49,6 +49,15 @@ const useTodo = () => {
         dispatch(removeSubtask({ parentId, subtaskId }));
     };
 
+    const onUpdateSubtask = (
+        parentId: I_Todo["id"],
+        subtaskId: I_Todo["id"],
+        title: I_Todo["title"],
+        priority?: TodoPriority
+    ) => {
+        dispatch(updateSubtask({ parentId, subtaskId, title, priority }));
+    };
+
     const onUpdateTodoTitle = (id: I_Todo["id"], title: I_Todo["title"], priority?: TodoPriority) => {
         dispatch(updateTodo({id, title, priority}))
     };
@@ -95,6 +104,7 @@ const useTodo = () => {
     onAddSubtask,
     onCheckSubtask,
     onDeleteSubtask,
+    onUpdateSubtask,
     onUpdateTodoTitle,
     onReorderTodos,
     onRefresh,
