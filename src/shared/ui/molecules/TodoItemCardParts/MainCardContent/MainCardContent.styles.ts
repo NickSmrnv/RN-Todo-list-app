@@ -1,5 +1,5 @@
-import { StyleSheet } from "react-native";
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
+import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
     mainCard: {
@@ -58,20 +58,22 @@ export const styles = StyleSheet.create({
     subtasksBadge: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 4,
+        justifyContent: "center",
+        gap: 5,
+        minWidth: 30,
         paddingHorizontal: 6,
         paddingVertical: 2,
-        borderRadius: 50,
-        borderWidth: 0.5,
+        borderRadius: 10,
         backgroundColor: COLORS.light_gray,
     },
     subtasksBadgeFloating: {
         position: "absolute",
-        top: -5,
-        right: -5,
+        top: -10,
+        right: -8,
     },
     subtasksBadgeText: {
-        fontSize: 12,
+        fontSize: 13,
+        fontWeight: "600",
         color: COLORS.blue,
     },
     menuButton: {

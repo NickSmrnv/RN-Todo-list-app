@@ -413,6 +413,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                     isCompleted={isCompleted}
                     priority={priority}
                     hasSubtasks={hasSubtasks}
+                    isExpanded={isExpanded}
                     subtasksCount={subtasks?.length ?? 0}
                     onPressCheck={onPressCheck}
                     onLongPress={onLongPress}

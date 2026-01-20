@@ -4,7 +4,8 @@ import { getPriorityColor } from "@/src/shared/lib/obj/priority";
 import { TodoPriority } from "@/src/shared/model/types/todo";
 import { CustomButton } from "@/src/shared/ui/atom/_Custom/CustomButton/CustomButton";
 import { CustomCheckbox } from "@/src/shared/ui/atom/_Custom/CustomCheckbox/CustomCheckbox";
-import React from "react";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect } from "react";
 import {
     Pressable,
     StyleProp,
@@ -15,7 +16,11 @@ import {
     ViewStyle,
 } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
-import Animated from "react-native-reanimated";
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from "react-native-reanimated";
 import { styles } from "./MainCardContent.styles";
 
 interface MainCardContentProps {
@@ -29,6 +34,7 @@ interface MainCardContentProps {
     isCompleted: boolean;
     priority?: TodoPriority;
     hasSubtasks: boolean;
+    isExpanded: boolean;
     subtasksCount: number;
     onPressCheck: () => void;
     onLongPress?: () => void;
@@ -58,6 +64,7 @@ export const MainCardContent: React.FC<MainCardContentProps> = ({
     isCompleted,
     priority,
     hasSubtasks,
+    isExpanded,
     subtasksCount,
     onPressCheck,
     onLongPress,
@@ -74,7 +81,18 @@ export const MainCardContent: React.FC<MainCardContentProps> = ({
     isMenuOpen,
     onMenuPress,
     menuSlot,
-}) => (
+}) => {
+    const arrowRotation = useSharedValue(isExpanded ? 180 : 0);
+
+    useEffect(() => {
+        arrowRotation.value = withTiming(isExpanded ? 180 : 0, { duration: 220 });
+    }, [isExpanded]);
+
+    const arrowAnimatedStyle = useAnimatedStyle(() => ({
+        transform: [{ rotate: `${arrowRotation.value}deg` }],
+    }));
+
+    return (
     <GestureDetector gesture={panGesture}>
         <Animated.View
             style={[
@@ -193,11 +211,10 @@ export const MainCardContent: React.FC<MainCardContentProps> = ({
                         styles.subtasksBadgeFloating,
                         {
                             backgroundColor: mode === "dark" ? colors.card : COLORS.light_gray,
-                            borderColor: COLORS.light_gray,
                             shadowColor: mode === "dark" ? "#000000" : COLORS.black,
                         },
                     ]}
-                    hitSlop={8}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 >
                     <Text
                         style={[
@@ -207,8 +224,16 @@ export const MainCardContent: React.FC<MainCardContentProps> = ({
                     >
                         {subtasksCount}
                     </Text>
+                    <Animated.View style={arrowAnimatedStyle}>
+                        <Ionicons
+                            name="chevron-down"
+                            size={16}
+                            color={mode === "dark" ? colors.primary : COLORS.blue}
+                        />
+                    </Animated.View>
                 </Pressable>
             )}
         </Animated.View>
     </GestureDetector>
-);
+    );
+};
