@@ -95,148 +95,148 @@ export const MainCardContent: React.FC<MainCardContentProps> = ({
     }));
 
     return (
-    <GestureDetector gesture={panGesture}>
-        <Animated.View
-            style={[
-                styles.mainCard,
-                animatedCardStyle,
-                {
-                    backgroundColor: isEditingTitle
-                        ? mode === "dark"
-                            ? "#0B1220"
-                            : COLORS.light_gray
-                        : colors.card,
-                    shadowColor: mode === "dark" ? "#000000" : COLORS.black,
-                    borderWidth: mode === "dark" ? 0.5 : 0,
-                    borderColor: mode === "dark" ? COLORS.light_gray : "transparent",
-                },
-            ]}
-            onStartShouldSetResponderCapture={() => {
-                onOutsidePress();
-                return false;
-            }}
-        >
-            <Pressable
-                style={({ pressed }) => [styles.dragAreaBackdrop, pressed && { opacity: 1 }]}
-                onLongPress={onLongPress}
-                android_ripple={null}
-            />
-            <Pressable
-                style={({ pressed }) => [styles.mainRow, pressed && { opacity: 1 }]}
-                onLongPress={onLongPress}
-                android_ripple={null}
+        <GestureDetector gesture={panGesture}>
+            <Animated.View
+                style={[
+                    styles.mainCard,
+                    animatedCardStyle,
+                    {
+                        backgroundColor: isEditingTitle
+                            ? mode === "dark"
+                                ? "#0B1220"
+                                : COLORS.light_gray
+                            : colors.card,
+                        shadowColor: mode === "dark" ? "#000000" : COLORS.black,
+                        borderWidth: mode === "dark" ? 0.5 : 0,
+                        borderColor: mode === "dark" ? COLORS.light_gray : "transparent",
+                    },
+                ]}
+                onStartShouldSetResponderCapture={() => {
+                    onOutsidePress();
+                    return false;
+                }}
             >
-                <View style={styles.checkTitleContainer}>
-                    <CustomCheckbox
-                        checked={isCompleted}
-                        onCheck={onPressCheck}
-                        onLongPress={onLongPress}
-                    />
-                    {isEditingTitle ? (
-                        <TextInput
-                            ref={titleInputRef}
-                            value={editedTitle}
-                            onChangeText={onEditedTitleChange}
-                            onBlur={onTitleBlur}
-                            onFocus={onTitleInputFocus}
-                            onSubmitEditing={onTitleSubmit}
-                            style={[
-                                styles.titleInput,
-                                {
-                                    color: colors.text,
-                                },
-                            ]}
-                            placeholder="Введите название задачи"
-                            placeholderTextColor={colors.text + "80"}
-                            returnKeyType="done"
-                            blurOnSubmit={true}
-                            selectTextOnFocus={true}
-                        />
-                    ) : (
-                        <Pressable
-                            style={styles.titleContainer}
-                            onPress={onTitlePress}
-                            onLongPress={onLongPress}
-                        >
-                            <Text
-                                style={{
-                                    flexShrink: 1,
-                                    color: colors.text,
-                                    textDecorationLine: isCompleted ? "line-through" : "none",
-                                }}
-                            >
-                                {title}
-                            </Text>
-                        </Pressable>
-                    )}
-                    {priority && (
-                        <View ref={priorityButtonRef} collapsable={false}>
-                            <TouchableOpacity
-                                onPress={onPriorityPress}
-                                onLongPress={onLongPress}
-                                activeOpacity={0.7}
-                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                            >
-                                <View
-                                    style={[
-                                        styles.priorityTag,
-                                        { backgroundColor: getPriorityColor(priority) },
-                                    ]}
-                                >
-                                    <Text style={styles.priorityTagText}>{priority}</Text>
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                </View>
-
-                <View style={styles.controlContainer}>
-                    <View ref={buttonRef} collapsable={false}>
-                        <CustomButton
-                            icon="ellipsis-horizontal"
-                            size="small"
-                            iconSize={16}
-                            onPress={onMenuPress}
-                            onLongPress={onLongPress}
-                            style={isMenuOpen ? styles.menuButtonActive : styles.menuButton}
-                        />
-                    </View>
-                    {menuSlot}
-                </View>
-            </Pressable>
-
-            {hasSubtasks && (
                 <Pressable
-                    onPress={onToggleExpand}
+                    style={({ pressed }) => [styles.dragAreaBackdrop, pressed && { opacity: 1 }]}
                     onLongPress={onLongPress}
-                    style={[
-                        styles.subtasksBadge,
-                        styles.subtasksBadgeFloating,
-                        {
-                            backgroundColor: mode === "dark" ? colors.card : COLORS.light_gray,
-                            shadowColor: mode === "dark" ? "#000000" : COLORS.black,
-                        },
-                    ]}
-                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    android_ripple={null}
+                />
+                <Pressable
+                    style={({ pressed }) => [styles.mainRow, pressed && { opacity: 1 }]}
+                    onLongPress={onLongPress}
+                    android_ripple={null}
                 >
-                    <Text
-                        style={[
-                            styles.subtasksBadgeText,
-                            { color: mode === "dark" ? colors.primary : COLORS.blue },
-                        ]}
-                    >
-                        {subtasksCount}
-                    </Text>
-                    <Animated.View style={arrowAnimatedStyle}>
-                        <Ionicons
-                            name="chevron-down"
-                            size={16}
-                            color={mode === "dark" ? colors.primary : COLORS.blue}
+                    <View style={styles.checkTitleContainer}>
+                        <CustomCheckbox
+                            checked={isCompleted}
+                            onCheck={onPressCheck}
+                            onLongPress={onLongPress}
                         />
-                    </Animated.View>
+                        {isEditingTitle ? (
+                            <TextInput
+                                ref={titleInputRef}
+                                value={editedTitle}
+                                onChangeText={onEditedTitleChange}
+                                onBlur={onTitleBlur}
+                                onFocus={onTitleInputFocus}
+                                onSubmitEditing={onTitleSubmit}
+                                style={[
+                                    styles.titleInput,
+                                    {
+                                        color: colors.text,
+                                    },
+                                ]}
+                                placeholder="Введите название задачи"
+                                placeholderTextColor={colors.text + "80"}
+                                returnKeyType="done"
+                                blurOnSubmit={true}
+                                selectTextOnFocus={true}
+                            />
+                        ) : (
+                            <Pressable
+                                style={styles.titleContainer}
+                                onPress={onTitlePress}
+                                onLongPress={onLongPress}
+                            >
+                                <Text
+                                    style={{
+                                        flexShrink: 1,
+                                        color: colors.text,
+                                        textDecorationLine: isCompleted ? "line-through" : "none",
+                                    }}
+                                >
+                                    {title}
+                                </Text>
+                            </Pressable>
+                        )}
+                        {priority && (
+                            <View ref={priorityButtonRef} collapsable={false}>
+                                <TouchableOpacity
+                                    onPress={onPriorityPress}
+                                    onLongPress={onLongPress}
+                                    activeOpacity={0.7}
+                                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                >
+                                    <View
+                                        style={[
+                                            styles.priorityTag,
+                                            { backgroundColor: getPriorityColor(priority) },
+                                        ]}
+                                    >
+                                        <Text style={styles.priorityTagText}>{priority}</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                    </View>
+
+                    <View style={styles.controlContainer}>
+                        <View ref={buttonRef} collapsable={false}>
+                            <CustomButton
+                                icon="ellipsis-horizontal"
+                                size="small"
+                                iconSize={16}
+                                onPress={onMenuPress}
+                                onLongPress={onLongPress}
+                                style={isMenuOpen ? styles.menuButtonActive : styles.menuButton}
+                            />
+                        </View>
+                        {menuSlot}
+                    </View>
                 </Pressable>
-            )}
-        </Animated.View>
-    </GestureDetector>
+
+                {hasSubtasks && (
+                    <Pressable
+                        onPress={onToggleExpand}
+                        onLongPress={onLongPress}
+                        style={[
+                            styles.subtasksBadge,
+                            styles.subtasksBadgeFloating,
+                            {
+                                backgroundColor: mode === "dark" ? colors.card : COLORS.light_gray,
+                                shadowColor: mode === "dark" ? "#000000" : COLORS.black,
+                            },
+                        ]}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    >
+                        <Text
+                            style={[
+                                styles.subtasksBadgeText,
+                                { color: mode === "dark" ? colors.primary : COLORS.blue },
+                            ]}
+                        >
+                            {subtasksCount}
+                        </Text>
+                        <Animated.View style={arrowAnimatedStyle}>
+                            <Ionicons
+                                name="chevron-down"
+                                size={16}
+                                color={mode === "dark" ? colors.primary : COLORS.blue}
+                            />
+                        </Animated.View>
+                    </Pressable>
+                )}
+            </Animated.View>
+        </GestureDetector>
     );
 };

@@ -71,7 +71,7 @@ export default function Index() {
         onReorderTodos,
         onRefresh,
         getTodosByDate,
-      } = useTodo();
+    } = useTodo();
 
     const filteredTodos = getTodosByDate(selectedDate);
     const filteredCompletedTodos = filteredTodos.filter((todo) => todo.isCompleted);
@@ -92,7 +92,7 @@ export default function Index() {
     ) => {
         onAddTodo(title, selectedDate, priority);
     };
-    
+
 
     const handleDateChange = (date: Date) => {
         setSelectedDate(date);
@@ -134,28 +134,28 @@ export default function Index() {
                             />
                         }
                     >
-                <Header
-                    totalTodos={filteredTodos.length}
-                    completedTodos={filteredCompletedTodos.length}
-                    selectedDate={selectedDate}
-                />
-                <View style={style.dateSliderContainer}>
-                    <DateSlider onDateChange={handleDateChange} />
-                </View>
-                <View style={[style.content, { backgroundColor: mode === "dark" ? colors.card : COLORS.blue }]}>
-                    <TodoListWidget 
-                        todos={filteredTodos}
-                        onCheckTodo={onCheckTodo}
-                        onDeleteTodo={onDeleteTodo}
-                        onAddSubtask={onAddSubtask}
-                        onCheckSubtask={onCheckSubtask}
-                        onDeleteSubtask={onDeleteSubtask}
-                        onUpdateSubtask={onUpdateSubtask}
-                        onUpdateTodo={onUpdateTodoTitle}
-                        onReorderTodos={onReorderTodos} 
-                        onAddTodo={handleAddTodo}
-                    />
-                </View>
+                        <Header
+                            totalTodos={filteredTodos.length}
+                            completedTodos={filteredCompletedTodos.length}
+                            selectedDate={selectedDate}
+                        />
+                        <View style={style.dateSliderContainer}>
+                            <DateSlider onDateChange={handleDateChange} />
+                        </View>
+                        <View style={[style.content, { backgroundColor: mode === "dark" ? colors.card : COLORS.blue }]}>
+                            <TodoListWidget
+                                todos={filteredTodos}
+                                onCheckTodo={onCheckTodo}
+                                onDeleteTodo={onDeleteTodo}
+                                onAddSubtask={onAddSubtask}
+                                onCheckSubtask={onCheckSubtask}
+                                onDeleteSubtask={onDeleteSubtask}
+                                onUpdateSubtask={onUpdateSubtask}
+                                onUpdateTodo={onUpdateTodoTitle}
+                                onReorderTodos={onReorderTodos}
+                                onAddTodo={handleAddTodo}
+                            />
+                        </View>
                     </ScrollView>
                 </KeyboardAvoidingView>
             </KeyboardScrollContext.Provider>

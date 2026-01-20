@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import DraggableFlatList, {
     RenderItemParams,
@@ -7,6 +7,8 @@ import DraggableFlatList, {
 
 import { I_Todo, TodoPriority } from "@/src/shared/model/types/todo";
 import { TodoItemCard } from "@/src/widgets/TodoItemCard/TodoItemCard";
+import { AddTodoButton } from "@/src/widgets/TodoListWidget/AddTodoButton";
+import { AddTodoInlineCard } from "@/src/widgets/TodoListWidget/AddTodoInlineCard";
 
 const CARD_GAP = 12;
 
@@ -57,6 +59,24 @@ export const TodoListWidget: React.FC<I_Todo_List> = ({
     onDeleteSubtask,
     onUpdateSubtask,
 }) => {
+    const [isAddingNew, setIsAddingNew] = useState(false);
+
+    const listHeader = (
+        <View style={styles.headerWrap}>
+            {isAddingNew ? (
+                <AddTodoInlineCard
+                    onConfirm={(title) => {
+                        onAddTodo(title);
+                        setIsAddingNew(false);
+                    }}
+                    onCancel={() => setIsAddingNew(false)}
+                />
+            ) : (
+                <AddTodoButton onPress={() => setIsAddingNew(true)} />
+            )}
+        </View>
+    );
+
     const renderItem = ({
         item,
         drag,
@@ -92,16 +112,20 @@ export const TodoListWidget: React.FC<I_Todo_List> = ({
             onDragEnd={({ data }) => onReorderTodos(data)}
             keyExtractor={(item) => item.id.toString()}
             renderItem={renderItem}
+            ListHeaderComponent={listHeader}
             scrollEnabled={false}
             nestedScrollEnabled={true}
             keyboardShouldPersistTaps="handled"
-            extraData={todos}
+            extraData={{ todos, isAddingNew }}
             contentContainerStyle={styles.listContent}
         />
     );
 };
 
 const styles = StyleSheet.create({
+    headerWrap: {
+        paddingBottom: CARD_GAP,
+    },
     itemWrapper: {
         paddingBottom: CARD_GAP,
     },
