@@ -6,27 +6,8 @@ export interface I_Todo_State {
 }
 
 const initialState: I_Todo_State = {
-    todos:   [
-        {
-            id: 1,
-            title: "Купить молоко",
-            isCompleted: false,
-            subtasks: [],
-        },
-        {
-            id: 2,
-            title: "Купить хлеб",
-            isCompleted: false,
-            subtasks: [],
-        },
-        {
-            id: 3,
-            title: "Купить яйца",
-            isCompleted: false,
-            subtasks: [],
-        },
-    ]
-}
+    todos: [],
+};
 
 export const todoSlice = createSlice({
     name: "todo",
