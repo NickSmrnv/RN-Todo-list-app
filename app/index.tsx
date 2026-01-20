@@ -5,7 +5,7 @@ import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import useTodo from "@/src/shared/lib/hooks/useTodo";
 // import { refreshIncompleteTodosReminder } from "@/src/shared/lib/notifications/reminders";
 import { getTodayDate } from "@/src/shared/lib/obj/date";
-import { TodoPriority } from "@/src/shared/model/types/todo";
+import { I_Todo, TodoPriority } from "@/src/shared/model/types/todo";
 import { Header } from "@/src/shared/ui/atom/Header/Header";
 import { CustomButton } from "@/src/shared/ui/atom/_Custom/CustomButton/CustomButton";
 import { DateSlider } from "@/src/widgets/DateSlider/DateSlider";
@@ -17,11 +17,11 @@ import {
     KeyboardAvoidingView,
     Platform,
     RefreshControl,
-    ScrollView,
     StatusBar,
     StyleSheet,
     View,
 } from "react-native";
+import { FlatList } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const DEFAULT_KEYBOARD_HEIGHT = 300;
@@ -34,7 +34,7 @@ export default function Index() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(getTodayDate());
 
-    const scrollViewRef = useRef<ScrollView>(null);
+    const listRef = useRef<FlatList<I_Todo> | null>(null);
     const scrollYRef = useRef(0);
     const keyboardHeightRef = useRef(DEFAULT_KEYBOARD_HEIGHT);
 
@@ -53,7 +53,7 @@ export default function Index() {
         const scrollDelta = layout.y + layout.height - visibleBottom;
         const newY = Math.max(0, scrollYRef.current + scrollDelta);
         setTimeout(() => {
-            scrollViewRef.current?.scrollTo({ y: newY, animated: true });
+            listRef.current?.scrollToOffset({ offset: newY, animated: true });
         }, 50);
     }, []);
 
@@ -118,22 +118,7 @@ export default function Index() {
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
                     keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
                 >
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={style.scrollView}
-                        contentContainerStyle={style.scrollContent}
-                        keyboardShouldPersistTaps="handled"
-                        onScroll={(e) => {
-                            scrollYRef.current = e.nativeEvent.contentOffset.y;
-                        }}
-                        scrollEventThrottle={16}
-                        refreshControl={
-                            <RefreshControl
-                                refreshing={refreshing}
-                                onRefresh={handleRefresh}
-                            />
-                        }
-                    >
+                    <View style={style.mainContent}>
                         <Header
                             totalTodos={filteredTodos.length}
                             completedTodos={filteredCompletedTodos.length}
@@ -144,6 +129,7 @@ export default function Index() {
                         </View>
                         <View style={[style.content, { backgroundColor: mode === "dark" ? colors.card : COLORS.blue }]}>
                             <TodoListWidget
+                                ref={listRef}
                                 todos={filteredTodos}
                                 onCheckTodo={onCheckTodo}
                                 onDeleteTodo={onDeleteTodo}
@@ -154,9 +140,18 @@ export default function Index() {
                                 onUpdateTodo={onUpdateTodoTitle}
                                 onReorderTodos={onReorderTodos}
                                 onAddTodo={handleAddTodo}
+                                onScroll={(e) => {
+                                    scrollYRef.current = e.nativeEvent.contentOffset.y;
+                                }}
+                                refreshControl={
+                                    <RefreshControl
+                                        refreshing={refreshing}
+                                        onRefresh={handleRefresh}
+                                    />
+                                }
                             />
                         </View>
-                    </ScrollView>
+                    </View>
                 </KeyboardAvoidingView>
             </KeyboardScrollContext.Provider>
             <View style={[style.fabContainer, { bottom: insets.bottom + 20 }]}>
@@ -190,12 +185,10 @@ const style = StyleSheet.create({
         flex: 1,
         width: "100%",
     },
-    scrollView: {
+    mainContent: {
         flex: 1,
+        minHeight: 0,
         width: "100%",
-    },
-    scrollContent: {
-        flexGrow: 1,
     },
     dateSliderContainer: {
         width: "100%",
@@ -204,7 +197,7 @@ const style = StyleSheet.create({
     content: {
         width: "100%",
         flex: 1,
-        paddingVertical: 10,
+        minHeight: 0,
         backgroundColor: COLORS.blue,
     },
     fabContainer: {

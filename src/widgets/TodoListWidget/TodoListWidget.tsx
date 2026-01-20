@@ -1,9 +1,16 @@
-import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import React, { forwardRef, useState } from "react";
+import {
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    RefreshControlProps,
+    StyleSheet,
+    View,
+} from "react-native";
 import DraggableFlatList, {
     RenderItemParams,
     ScaleDecorator,
 } from "react-native-draggable-flatlist";
+import { FlatList } from "react-native-gesture-handler";
 
 import { I_Todo, TodoPriority } from "@/src/shared/model/types/todo";
 import { TodoItemCard } from "@/src/widgets/TodoItemCard/TodoItemCard";
@@ -45,9 +52,12 @@ interface I_Todo_List {
         title: I_Todo["title"],
         priority?: TodoPriority
     ) => void;
+
+    onScroll?: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
+    refreshControl?: React.ReactElement<RefreshControlProps>;
 }
 
-export const TodoListWidget: React.FC<I_Todo_List> = ({
+export const TodoListWidget = forwardRef<FlatList<I_Todo>, I_Todo_List>(({
     todos,
     onCheckTodo,
     onDeleteTodo,
@@ -58,7 +68,9 @@ export const TodoListWidget: React.FC<I_Todo_List> = ({
     onCheckSubtask,
     onDeleteSubtask,
     onUpdateSubtask,
-}) => {
+    onScroll,
+    refreshControl,
+}, ref) => {
     const [isAddingNew, setIsAddingNew] = useState(false);
 
     const listHeader = (
@@ -108,21 +120,37 @@ export const TodoListWidget: React.FC<I_Todo_List> = ({
 
     return (
         <DraggableFlatList
+            ref={ref}
             data={todos}
             onDragEnd={({ data }) => onReorderTodos(data)}
             keyExtractor={(item) => item.id.toString()}
             renderItem={renderItem}
             ListHeaderComponent={listHeader}
-            scrollEnabled={false}
+            containerStyle={styles.listContainer}
+            style={styles.list}
+            scrollEnabled={true}
             nestedScrollEnabled={true}
             keyboardShouldPersistTaps="handled"
+            onScroll={onScroll}
+            refreshControl={refreshControl}
+            scrollEventThrottle={16}
             extraData={{ todos, isAddingNew }}
             contentContainerStyle={styles.listContent}
         />
     );
-};
+});
+
+TodoListWidget.displayName = "TodoListWidget";
 
 const styles = StyleSheet.create({
+    listContainer: {
+        flex: 1,
+        minHeight: 0,
+    },
+    list: {
+        flex: 1,
+        minHeight: 0,
+    },
     headerWrap: {
         paddingBottom: CARD_GAP,
     },
