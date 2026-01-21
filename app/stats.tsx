@@ -1,12 +1,16 @@
 import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
 import { useTheme } from "@/src/shared/lib/context/ThemeContext";
 import useTodo from "@/src/shared/lib/hooks/useTodo";
+import { getPriorityColor } from "@/src/shared/lib/obj/priority";
 import { CustomText } from "@/src/shared/ui/atom/_Custom/CustomText/CustomText";
+import { TodoPriority } from "@/src/shared/model/types/todo";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useMemo } from "react";
 import { Pressable, ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const PRIORITIES: TodoPriority[] = ["Низкий", "Средний", "Высокий"];
 
 export default function StatsScreen() {
     const { colors, mode } = useTheme();
@@ -18,6 +22,19 @@ export default function StatsScreen() {
     const totalCompleted = completedTodos.length;
     const completionRate =
         totalTodos > 0 ? Math.round((totalCompleted / totalTodos) * 100) : 0;
+
+    const countByPriority = useMemo(() => {
+        const counts: Record<TodoPriority, number> = {
+            Низкий: 0,
+            Средний: 0,
+            Высокий: 0,
+        };
+        todos.forEach((todo) => {
+            const p: TodoPriority = todo.priority ?? "Средний";
+            counts[p]++;
+        });
+        return counts;
+    }, [todos]);
 
     return (
         <View
@@ -90,6 +107,31 @@ export default function StatsScreen() {
                     <CustomText variant={"subtitle"}>Процент выполнения</CustomText>
                     <CustomText variant={"title"}>{completionRate}%</CustomText>
                 </View>
+
+                <View
+                    style={[
+                        styles.card,
+                        { backgroundColor: mode === "dark" ? colors.card : COLORS.white },
+                    ]}
+                >
+                    <CustomText variant={"subtitle"}>Задачи с приоритетом</CustomText>
+
+                    <View style={styles.priorityList}>
+                        {PRIORITIES.map((priority) => (
+                            <View key={priority} style={styles.priorityItem}>
+                                <View
+                                    style={[
+                                        styles.priorityDot,
+                                        { backgroundColor: getPriorityColor(priority) },
+                                    ]}
+                                />
+                                <CustomText variant={"primary"}>
+                                    {priority} — {countByPriority[priority]}
+                                </CustomText>
+                            </View>
+                        ))}
+                    </View>
+                </View>
             </ScrollView>
         </View>
     );
@@ -121,6 +163,20 @@ const styles = StyleSheet.create({
     firstRow: {
         flexDirection: "row",
         gap: 16,
+    },
+    priorityList: {
+        marginTop: 10,
+        gap: 10,
+    },
+    priorityItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+    priorityDot: {
+        width: 14,
+        height: 14,
+        borderRadius: 7,
     },
     card: {
         borderRadius: 16,
