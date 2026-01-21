@@ -18,11 +18,13 @@ import {
 interface I_Date_Slider {
     onDateChange: (date: Date) => void;
     initialDate?: Date;
+    /** При переходе с календаря — перемотка к этой дате (ISO-строка). */
+    syncDateParam?: string;
 }
 
 const ITEM_WIDTH = 80;
 
-export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate }) => {
+export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate, syncDateParam }) => {
     const { colors, mode } = useTheme();
     const [selectedDate, setSelectedDate] = useState<Date>(initialDate || getTodayDate());
     const [dates, setDates] = useState<Date[]>(() => getYearDates());
@@ -32,6 +34,7 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
     const isInitialized = useRef(false);
     const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastScrollOffset = useRef<number>(0);
+    const isSyncingDateRef = useRef(false);
     const todayDate = getTodayDate();
 
     // Вычисляем padding для центрирования элементов
@@ -55,6 +58,8 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
     };
 
     useEffect(() => {
+        // Не перебиваем: при переходе с календаря дату выставляет sync-эффект
+        if (syncDateParam) return;
         // Инициализация: прокрутка к выбранной дате после получения размеров контейнера
         // Выполняем только один раз при монтировании
         if (containerWidth > 0 && !isInitialized.current) {
@@ -71,7 +76,21 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [containerWidth]);
+    }, [containerWidth, syncDateParam]);
+
+    useEffect(() => {
+        if (!syncDateParam || containerWidth === 0 || !flatListRef.current) return;
+        const d = new Date(syncDateParam);
+        const i = dates.findIndex((date) => isSameDate(date, d));
+        if (i < 0) return;
+        isSyncingDateRef.current = true;
+        flatListRef.current.scrollToOffset({ offset: i * ITEM_WIDTH, animated: true });
+        setSelectedDate(d);
+        const t = setTimeout(() => {
+            isSyncingDateRef.current = false;
+        }, 500);
+        return () => clearTimeout(t);
+    }, [syncDateParam, containerWidth, dates]);
 
     useEffect(() => {
         // Очистка таймеров при размонтировании
@@ -118,6 +137,10 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
     };
 
     const handleMomentumScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        if (isSyncingDateRef.current) {
+            isSyncingDateRef.current = false;
+            return;
+        }
         // Отменяем любые ожидающие обновления
         if (scrollTimeoutRef.current) {
             clearTimeout(scrollTimeoutRef.current);
@@ -143,6 +166,11 @@ export const DateSlider: React.FC<I_Date_Slider> = ({ onDateChange, initialDate 
         // Если пользователь отпустил палец, но инерция еще не закончилась,
         // ждем немного, чтобы увидеть, будет ли вызван onMomentumScrollEnd
         scrollTimeoutRef.current = setTimeout(() => {
+            if (isSyncingDateRef.current) {
+                isSyncingDateRef.current = false;
+                scrollTimeoutRef.current = null;
+                return;
+            }
             // Если onMomentumScrollEnd не был вызван (нет инерции), обновляем дату
             updateSelectedDate(offsetX);
             scrollTimeoutRef.current = null;

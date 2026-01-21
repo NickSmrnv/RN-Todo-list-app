@@ -10,6 +10,7 @@ import { Header } from "@/src/shared/ui/atom/Header/Header";
 import { CustomButton } from "@/src/shared/ui/atom/_Custom/CustomButton/CustomButton";
 import { DateSlider } from "@/src/widgets/DateSlider/DateSlider";
 import { TodoListWidget } from "@/src/widgets/TodoListWidget/TodoListWidget";
+import { useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     Dimensions,
@@ -30,6 +31,7 @@ const INPUT_PADDING_ABOVE_KEYBOARD = 24;
 export default function Index() {
     const insets = useSafeAreaInsets();
     const { colors, mode } = useTheme();
+    const params = useLocalSearchParams<{ date?: string; taskId?: string }>();
     const [refreshing, setRefreshing] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(getTodayDate());
@@ -37,6 +39,7 @@ export default function Index() {
     const listRef = useRef<FlatList<I_Todo> | null>(null);
     const scrollYRef = useRef(0);
     const keyboardHeightRef = useRef(DEFAULT_KEYBOARD_HEIGHT);
+    const lastScrolledTaskIdRef = useRef<string | null>(null);
 
     useEffect(() => {
         const sub = Keyboard.addListener("keyboardDidShow", (e) => {
@@ -44,6 +47,11 @@ export default function Index() {
         });
         return () => sub.remove();
     }, []);
+
+    useEffect(() => {
+        const dateStr = typeof params?.date === "string" ? params.date : undefined;
+        if (dateStr) setSelectedDate(new Date(dateStr));
+    }, [params?.date]);
 
     const scrollToShowInput = useCallback((layout: { y: number; height: number }) => {
         const windowHeight = Dimensions.get("window").height;
@@ -75,6 +83,17 @@ export default function Index() {
 
     const filteredTodos = getTodosByDate(selectedDate);
     const filteredCompletedTodos = filteredTodos.filter((todo) => todo.isCompleted);
+
+    useEffect(() => {
+        if (!params?.taskId) return;
+        const idx = filteredTodos.findIndex((t) => String(t.id) === params.taskId);
+        if (idx < 0 || lastScrolledTaskIdRef.current === params.taskId) return;
+        lastScrolledTaskIdRef.current = params.taskId;
+        const id = setTimeout(() => {
+            listRef.current?.scrollToIndex({ index: idx, animated: true, viewPosition: 0.5 });
+        }, 150);
+        return () => clearTimeout(id);
+    }, [params?.taskId, filteredTodos]);
 
     // useEffect(() => {
     //     refreshIncompleteTodosReminder(todos);
@@ -125,7 +144,10 @@ export default function Index() {
                             selectedDate={selectedDate}
                         />
                         <View style={style.dateSliderContainer}>
-                            <DateSlider onDateChange={handleDateChange} />
+                            <DateSlider
+                                onDateChange={handleDateChange}
+                                syncDateParam={typeof params?.date === "string" ? params.date : undefined}
+                            />
                         </View>
                         <View style={[style.content, { backgroundColor: mode === "dark" ? colors.card : COLORS.blue }]}>
                             <TodoListWidget

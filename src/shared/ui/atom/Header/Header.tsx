@@ -43,6 +43,13 @@ export const Header: React.FC<I_Header> = ({ totalTodos, completedTodos, selecte
 
                 <View style={styles.rightSection}>
                     <Pressable
+                        onPress={() => router.push("/calendar")}
+                        hitSlop={8}
+                        style={styles.iconButton}
+                    >
+                        <Ionicons name="calendar-outline" size={20} color={colors.text} />
+                    </Pressable>
+                    <Pressable
                         style={styles.counterContainer}
                         onPress={() => router.push("/stats")}
                         hitSlop={8}
@@ -91,6 +98,10 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 16,
+    },
+    iconButton: {
+        padding: 4,
+        borderRadius: 999,
     },
     counterContainer: {
         flexDirection: "row",

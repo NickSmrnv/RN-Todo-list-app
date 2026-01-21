@@ -60,6 +60,52 @@ export const getDateLabel = (date: Date): string => {
     }
 }
 
+/** Понедельник = 0. Возвращает ячейки сетки 6×7 для календаря (пн–вс). */
+export const getMonthGrid = (year: number, month: number): { date: Date | null; isCurrentMonth: boolean }[] => {
+    const first = new Date(year, month, 1);
+    const last = new Date(year, month + 1, 0);
+    const lastDay = last.getDate();
+    // Пн=0, Вс=6
+    const startOffset = (first.getDay() + 6) % 7;
+    const cells: { date: Date | null; isCurrentMonth: boolean }[] = [];
+
+    for (let i = 0; i < startOffset; i++) {
+        cells.push({ date: null, isCurrentMonth: false });
+    }
+    for (let d = 1; d <= lastDay; d++) {
+        cells.push({ date: new Date(year, month, d), isCurrentMonth: true });
+    }
+    const total = cells.length;
+    const pad = total % 7 === 0 ? 0 : 7 - (total % 7);
+    for (let i = 0; i < pad; i++) {
+        cells.push({ date: null, isCurrentMonth: false });
+    }
+    return cells;
+};
+
+export const isOverdue = (date: Date): boolean => {
+    const dNorm = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+    const tNorm = getTodayDate().getTime();
+    return dNorm < tNorm;
+};
+
+/** Для списка: "15 янв" или "15 янв. 2026" если другой год. */
+export const getShortDateLabel = (date: Date): string => {
+    const y = date.getFullYear();
+    const needYear = y !== new Date().getFullYear();
+    return new Intl.DateTimeFormat("ru-RU", {
+        day: "numeric",
+        month: "short",
+        ...(needYear && { year: "numeric" }),
+    })
+        .format(date)
+        .replace(".", "");
+};
+
+export const getMonthTitle = (year: number, month: number): string => {
+    return new Intl.DateTimeFormat("ru-RU", { month: "long", year: "numeric" }).format(new Date(year, month, 1));
+};
+
 export const getYearDates = (year?: number): Date[] => {
     const targetYear = year || new Date().getFullYear();
     const dates: Date[] = [];

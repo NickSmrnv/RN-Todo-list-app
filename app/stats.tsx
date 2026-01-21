@@ -39,14 +39,13 @@ export default function StatsScreen() {
                 <Pressable
                     onPress={() => router.back()}
                     style={[
-                        styles.backButton,
-                        { backgroundColor: mode === "dark" ? colors.card : COLORS.light_gray },
+                        styles.backButton
                     ]}
                     hitSlop={8}
                 >
                     <Ionicons
                         name="chevron-back"
-                        size={20}
+                        size={24}
                         color={mode === "dark" ? COLORS.white : COLORS.black}
                     />
                 </Pressable>
@@ -108,10 +107,7 @@ const styles = StyleSheet.create({
         paddingBottom: 10,
     },
     backButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        borderRadius: 999,
-        backgroundColor: COLORS.light_gray,
+        padding: 4,
     },
     scroll: {
         flex: 1,

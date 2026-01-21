@@ -63,6 +63,7 @@ export default function RootLayout() {
                                     }) as StackCardStyleInterpolator,
                                 }}
                             />
+                            <CustomStack.Screen name="calendar" />
                         </CustomStack>
                     </ThemeProvider>
                 </PersistGate>
