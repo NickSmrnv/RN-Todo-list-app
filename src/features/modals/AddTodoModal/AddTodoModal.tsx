@@ -101,6 +101,9 @@ export const AddTodoModal: React.FC<I_Add_Todo_Modal> = ({
                         placeholder={"Введите название задачи..."}
                         isError={inputError}
                         autoFocus
+                        autoComplete="off"
+                        textContentType="none"
+                        autoCorrect={false}
                     />
                 </View>
 
@@ -155,7 +158,7 @@ export const AddTodoModal: React.FC<I_Add_Todo_Modal> = ({
                 )}
 
                 <View style={styles.buttonsContainer}>
-                    <CustomButton label={"Отмена"} onPress={onPressCancel} variant="secondary" />
+                    <CustomButton label={"Отмена"} onPress={onPressCancel} style={{ backgroundColor: COLORS.pink }} />
                     <CustomButton label={submitText} onPress={onPressAdd} disabled={inputError || !title.trim()} />
                 </View>
             </View>

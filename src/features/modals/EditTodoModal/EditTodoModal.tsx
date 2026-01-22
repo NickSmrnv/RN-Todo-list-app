@@ -1,3 +1,4 @@
+import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
 import { I_Todo, TodoPriority } from "@/src/shared/model/types/todo";
 import { CustomButton } from "@/src/shared/ui/atom/_Custom/CustomButton/CustomButton";
 import { CustomModal } from "@/src/shared/ui/atom/_Custom/CustomModal/CustomModal";
@@ -52,6 +53,9 @@ export const EditTodoModal: React.FC<I_Edit_Todo_Modal> = ({ isOpen, title, prio
                         onChangeText={setUpdateTitle}
                         placeholder={"Введите название задачи..."} 
                         isError={inputError}
+                        autoComplete="off"
+                        textContentType="none"
+                        autoCorrect={false}
                     />
                 </View>
 
@@ -63,7 +67,7 @@ export const EditTodoModal: React.FC<I_Edit_Todo_Modal> = ({ isOpen, title, prio
                 </View>
 
                 <View style={styles.buttonsContainer}>
-                    <CustomButton label={"Отмена"} onPress={onClose} />
+                    <CustomButton label={"Отмена"} onPress={onClose} style={{ backgroundColor: COLORS.pink }} />
                     <CustomButton variant={"secondary"} label={"Сохранить"} onPress={onPressSave} disabled={inputError} />
                 </View>
             </View>

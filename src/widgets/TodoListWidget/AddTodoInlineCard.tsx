@@ -75,6 +75,9 @@ export const AddTodoInlineCard: React.FC<AddTodoInlineCardProps> = ({
                         placeholderTextColor={colors.text + "80"}
                         returnKeyType="done"
                         blurOnSubmit
+                        autoComplete="off"
+                        textContentType="none"
+                        autoCorrect={false}
                     />
                 </View>
             </View>

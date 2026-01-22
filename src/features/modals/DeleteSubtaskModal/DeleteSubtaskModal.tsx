@@ -1,3 +1,4 @@
+import { COLORS } from "@/src/shared/assets/styles/constants/colors-variables";
 import { CustomButton } from "@/src/shared/ui/atom/_Custom/CustomButton/CustomButton";
 import { CustomModal } from "@/src/shared/ui/atom/_Custom/CustomModal/CustomModal";
 import { CustomText } from "@/src/shared/ui/atom/_Custom/CustomText/CustomText";
@@ -24,7 +25,7 @@ export const DeleteSubtaskModal: React.FC<I_Delete_Subtask_Modal> = ({
                 </CustomText>
 
                 <View style={styles.buttonsContainer}>
-                    <CustomButton label="Отмена" onPress={onClose} />
+                    <CustomButton label="Отмена" onPress={onClose} style={{ backgroundColor: COLORS.pink }} />
                     <CustomButton variant="delete" label="Удалить" onPress={onDelete} />
                 </View>
             </View>

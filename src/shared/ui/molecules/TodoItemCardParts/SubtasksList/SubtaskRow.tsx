@@ -194,6 +194,9 @@ export const SubtaskRow: React.FC<SubtaskRowProps> = ({
                                 returnKeyType="done"
                                 blurOnSubmit
                                 selectTextOnFocus
+                                autoComplete="off"
+                                textContentType="none"
+                                autoCorrect={false}
                             />
                         ) : (
                             <Pressable

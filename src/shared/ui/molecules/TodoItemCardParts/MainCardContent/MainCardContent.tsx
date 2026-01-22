@@ -151,6 +151,9 @@ export const MainCardContent: React.FC<MainCardContentProps> = ({
                                 returnKeyType="done"
                                 blurOnSubmit={true}
                                 selectTextOnFocus={true}
+                                autoComplete="off"
+                                textContentType="none"
+                                autoCorrect={false}
                             />
                         ) : (
                             <Pressable
