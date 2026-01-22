@@ -28,7 +28,8 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./src/shared/assets/images/favicon.png"
+      "favicon": "./src/shared/assets/images/favicon.png",
+      "publicPath": "/RN-Todo-list-app/"
     },
     "plugins": [
       "expo-router",
