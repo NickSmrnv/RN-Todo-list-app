@@ -197,15 +197,14 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "baseline",
         gap: 12,
-        paddingHorizontal: 16,
+        paddingHorizontal: 25,
         paddingVertical: 12,
     },
     backButton: {
         padding: 4,
     },
     calendarSection: {
-        flexGrow: 0,
-        flexShrink: 0,
+        flex: 1,
     },
     listSection: {
         flex: 1,

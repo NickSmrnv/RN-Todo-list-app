@@ -25,6 +25,55 @@ export const CalendarMonthView: React.FC<I_CalendarMonthView> = ({
     const grid = getMonthGrid(year, month);
     const today = new Date();
 
+    // Разбиваем сетку на строки по 7 ячеек для правильного отображения на iOS
+    const rows: typeof grid[] = [];
+    for (let i = 0; i < grid.length; i += 7) {
+        rows.push(grid.slice(i, i + 7));
+    }
+
+    const renderCell = (cell: typeof grid[0], index: number) => {
+        const key = cell.date ? `${year}-${month}-${cell.date.getDate()}` : `e-${index}`;
+        const hasTask = cell.date ? datesWithTasks.has(`${year}-${month}-${cell.date.getDate()}`) : false;
+        const isToday = cell.date ? isSameDate(cell.date, today) : false;
+        const cellContent = cell.date ? (
+            <>
+                <CustomText
+                    variant="small"
+                    style={[
+                        styles.cellDay,
+                        !cell.isCurrentMonth && styles.cellDayMuted,
+                        isToday && styles.cellDayToday,
+                    ]}
+                >
+                    {cell.date.getDate()}
+                </CustomText>
+                {hasTask && (
+                    <View
+                        style={[
+                            styles.dot,
+                            { backgroundColor: colors.primary },
+                        ]}
+                    />
+                )}
+            </>
+        ) : null;
+
+        return (
+            <View key={key} style={[styles.cell, { width: cellSize, height: cellSize }]}>
+                {cell.date && onDatePress ? (
+                    <Pressable
+                        onPress={() => onDatePress(cell.date!)}
+                        style={styles.cellPressable}
+                    >
+                        {cellContent}
+                    </Pressable>
+                ) : (
+                    cellContent
+                )}
+            </View>
+        );
+    };
+
     return (
         <View style={styles.monthWrap}>
             <CustomText variant="subtitle" style={styles.monthTitle}>
@@ -40,49 +89,12 @@ export const CalendarMonthView: React.FC<I_CalendarMonthView> = ({
                     </View>
                 ))}
             </View>
-            <View style={styles.grid}>
-                {grid.map((cell, i) => {
-                    const key = cell.date ? `${year}-${month}-${cell.date.getDate()}` : `e-${i}`;
-                    const hasTask = cell.date ? datesWithTasks.has(`${year}-${month}-${cell.date.getDate()}`) : false;
-                    const isToday = cell.date ? isSameDate(cell.date, today) : false;
-                    const cellContent = cell.date ? (
-                        <>
-                            <CustomText
-                                variant="small"
-                                style={[
-                                    styles.cellDay,
-                                    !cell.isCurrentMonth && styles.cellDayMuted,
-                                    isToday && styles.cellDayToday,
-                                ]}
-                            >
-                                {cell.date.getDate()}
-                            </CustomText>
-                            {hasTask && (
-                                <View
-                                    style={[
-                                        styles.dot,
-                                        { backgroundColor: colors.primary },
-                                    ]}
-                                />
-                            )}
-                        </>
-                    ) : null;
-
-                    return (
-                        <View key={key} style={[styles.cell, { width: cellSize, height: cellSize }]}>
-                            {cell.date && onDatePress ? (
-                                <Pressable
-                                    onPress={() => onDatePress(cell.date!)}
-                                    style={styles.cellPressable}
-                                >
-                                    {cellContent}
-                                </Pressable>
-                            ) : (
-                                cellContent
-                            )}
-                        </View>
-                    );
-                })}
+            <View style={styles.gridContainer}>
+                {rows.map((row, rowIndex) => (
+                    <View key={rowIndex} style={[styles.gridRow, { width: cellSize * 7 }]}>
+                        {row.map((cell, cellIndex) => renderCell(cell, rowIndex * 7 + cellIndex))}
+                    </View>
+                ))}
             </View>
         </View>
     );
@@ -105,9 +117,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-    grid: {
+    gridContainer: {
+        flexDirection: "column",
+    },
+    gridRow: {
         flexDirection: "row",
-        flexWrap: "wrap",
     },
     cell: {
         alignItems: "center",
