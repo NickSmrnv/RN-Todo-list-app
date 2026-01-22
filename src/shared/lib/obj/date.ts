@@ -67,26 +67,57 @@ export const getDateLabel = (date: Date): string => {
     }
 }
 
+/**
+ * Вычисляет день недели для заданной даты (алгоритм Зеллера)
+ * Возвращает: 0=Пн, 1=Вт, 2=Ср, 3=Чт, 4=Пт, 5=Сб, 6=Вс
+ * Не зависит от локальных настроек и часовых поясов
+ */
+const getWeekday = (year: number, month: number, day: number): number => {
+    // Алгоритм Зеллера: работает с григорианским календарем
+    // month: 1=январь, 12=декабрь (в JavaScript month: 0=январь, 11=декабрь)
+    const m = month + 1;
+    const y = m < 3 ? year - 1 : year;
+    const mAdj = m < 3 ? m + 12 : m;
+    const yAdj = y % 100;
+    const c = Math.floor(y / 100);
+    
+    // Формула Зеллера: день недели (0=суббота, 1=воскресенье, ..., 6=пятница)
+    const w = (day + Math.floor((13 * (mAdj + 1)) / 5) + yAdj + Math.floor(yAdj / 4) + Math.floor(c / 4) - 2 * c) % 7;
+    
+    // Преобразуем в формат: 0=Пн, 1=Вт, 2=Ср, 3=Чт, 4=Пт, 5=Сб, 6=Вс
+    return (w + 5) % 7;
+};
+
 /** Понедельник = 0. Возвращает ячейки сетки 6×7 для календаря (пн–вс). */
 export const getMonthGrid = (year: number, month: number): { date: Date | null; isCurrentMonth: boolean }[] => {
-    const first = new Date(year, month, 1);
+    // Вычисляем количество дней в месяце
     const last = new Date(year, month + 1, 0);
     const lastDay = last.getDate();
-    // Пн=0, Вс=6
-    const startOffset = (first.getDay() + 6) % 7;
+    
+    // Вычисляем день недели для первого дня месяца (0=Пн, 6=Вс)
+    const startOffset = getWeekday(year, month, 1);
+    
     const cells: { date: Date | null; isCurrentMonth: boolean }[] = [];
 
+    // Добавляем пустые ячейки до первого дня месяца
     for (let i = 0; i < startOffset; i++) {
         cells.push({ date: null, isCurrentMonth: false });
     }
+    
+    // Добавляем дни месяца
     for (let d = 1; d <= lastDay; d++) {
-        cells.push({ date: new Date(year, month, d), isCurrentMonth: true });
+        // Создаем дату в локальном времени, устанавливаем время на полдень для избежания проблем с часовыми поясами
+        const date = new Date(year, month, d, 12, 0, 0, 0);
+        cells.push({ date, isCurrentMonth: true });
     }
+    
+    // Добавляем пустые ячейки до конца недели
     const total = cells.length;
     const pad = total % 7 === 0 ? 0 : 7 - (total % 7);
     for (let i = 0; i < pad; i++) {
         cells.push({ date: null, isCurrentMonth: false });
     }
+    
     return cells;
 };
 
