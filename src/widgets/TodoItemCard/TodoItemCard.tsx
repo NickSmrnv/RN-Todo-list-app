@@ -275,8 +275,8 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
         });
     };
 
-    const handleAddSubtaskConfirm = (subtaskTitle: string, subtaskPriority: TodoPriority) => {
-        onAddSubtask(id, subtaskTitle, subtaskPriority);
+    const handleAddSubtaskConfirm = (subtaskTitle: string, _date?: Date, subtaskPriority?: TodoPriority) => {
+        onAddSubtask(id, subtaskTitle, subtaskPriority ?? "Средний");
         setIsExpanded(true);
         // При добавлении подзадачи сразу раскрываем и сохраняем это состояние
         void persistSubtasksExpandedState(id, true);
@@ -550,6 +550,7 @@ export const TodoItemCard: React.FC<I_Todo_Item> = ({
                 titleText="Добавить подзадачу"
                 submitText="Добавить"
                 withPriority={false}
+                withDate={false}
             />
 
             <DeleteSubtaskModal

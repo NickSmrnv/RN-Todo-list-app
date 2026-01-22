@@ -107,9 +107,10 @@ export default function Index() {
 
     const handleAddTodo = (
         title: string,
+        date?: Date,
         priority: TodoPriority = "Средний"
     ) => {
-        onAddTodo(title, selectedDate, priority);
+        onAddTodo(title, date ?? selectedDate, priority);
     };
 
 

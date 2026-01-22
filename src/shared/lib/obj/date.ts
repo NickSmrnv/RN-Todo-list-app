@@ -8,6 +8,13 @@ export const getFullFormattedDate = (date: Date) => {
     )
 }
 
+/** Полный формат даты: "11 января 2026 год" */
+export const getFullDateLabel = (date: Date): string => {
+    const formatted = getFullFormattedDate(date);
+    // Заменяем "г." на "год" для полного формата
+    return formatted.replace(/г\.?$/, "");
+}
+
 export const getDateRange = (centerDate: Date, daysBefore: number = 7, daysAfter: number = 7): Date[] => {
     const dates: Date[] = [];
     const startDate = new Date(centerDate);
