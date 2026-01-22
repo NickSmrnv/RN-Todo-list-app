@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Todo App",
-    "slug": "todo-app",
-    "version": "2.0.0",
+    "name": "RN-Todo-list-app",
+    "slug": "RN-Todo-list-app",
+    "version": "2.1.0",
     "orientation": "portrait",
     "icon": "./src/shared/assets/images/logo.png",
     "scheme": "tasktrackerrn",
